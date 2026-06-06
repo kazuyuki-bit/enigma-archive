@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENIGMA ARCHIVE — 世界怪奇現象記録庫</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+JP:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   CONFIG: ここにあなたのSupabase情報を入力
+   ══════════════════════════════════════════ */
+/* JS内の SUPABASE_URL と SUPABASE_ANON_KEY を編集してください */
+
+:root {
+  --black: #050508; --deep: #0a0a12; --surface: #0f0f1a;
+  --panel: #14141f; --border: rgba(180,140,60,0.18);
+  --border-bright: rgba(180,140,60,0.45);
+  --gold: #c8a84b; --gold-dim: #8a7030;
+  --red: #8b2020; --red-bright: #c0392b;
+  --text: #d4cfc0; --text-dim: #7a7568; --text-muted: #3a3832;
+  --green-ok: #2ecc71; --blue-info: #6ab0f5; --purple: #c084fc;
+  --amber: #fbbf24;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--black); color: var(--text);
+  font-family: 'Noto Serif JP', serif; font-weight: 300;
+  line-height: 1.8; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999; opacity: 0.5;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(5,5,8,0.95); backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid var(--border);
+  padding: 0.65rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.nav-logo { font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 0.2em; color: var(--gold); text-decoration: none; }
+.nav-links { display: flex; gap: 1.5rem; list-style: none; }
+.nav-links a { font-family: 'Share Tech Mono', monospace; font-size: 0.68rem; letter-spacing: 0.18em; color: var(--text-dim); text-decoration: none; text-transform: uppercase; transition: color 0.2s; cursor: pointer; }
+.nav-links a:hover, .nav-links a.active { color: var(--gold); }
+.nav-right { display: flex; align-items: center; gap: 0.75rem; }
+.btn-sm { font-family: 'Share Tech Mono', monospace; font-size: 0.63rem; letter-spacing: 0.15em; background: transparent; border: 1px solid; padding: 5px 14px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; text-decoration: none; display: inline-block; }
+.btn-red { border-color: var(--red-bright); color: var(--red-bright); }
+.btn-red:hover { background: var(--red-bright); color: #fff; }
+.btn-gold { border-color: var(--gold-dim); color: var(--gold); }
+.btn-gold:hover { background: var(--gold); color: var(--black); }
+.btn-ghost { border-color: var(--border-bright); color: var(--text-dim); }
+.btn-ghost:hover { color: var(--text); border-color: var(--text-dim); }
+
+/* ── PAGE SYSTEM ── */
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
+
+/* ── HERO ── */
+.hero {
+  position: relative; min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; padding: 2rem; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(139,32,32,0.12) 0%, transparent 60%), var(--black);
+}
+.scanlines {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+  pointer-events: none;
+}
+.hero-content { position: relative; z-index: 2; }
+.classified-stamp {
+  display: inline-block; border: 2px solid var(--red-bright); color: var(--red-bright);
+  font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.3em;
+  padding: 4px 16px; margin-bottom: 2.5rem; transform: rotate(-1.5deg);
+  animation: flicker 4s infinite;
+}
+@keyframes flicker { 0%,95%,100%{opacity:0.8} 96%{opacity:0.3} 97%{opacity:0.8} 98%{opacity:0.2} }
+.site-title {
+  font-family: 'Cinzel', serif; font-size: clamp(2.5rem,8vw,5.5rem);
+  font-weight: 700; letter-spacing: 0.12em; line-height: 0.9;
+  color: var(--gold); text-shadow: 0 0 40px rgba(200,168,75,0.3); margin-bottom: 0.3em;
+}
+.site-subtitle { font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; letter-spacing: 0.35em; color: var(--text-dim); margin-bottom: 2rem; text-transform: uppercase; }
+.tagline { font-size: 0.88rem; color: var(--text-dim); max-width: 480px; margin: 0 auto 2.5rem; }
+.hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+@keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:0.8} }
+
+/* ── STATS BAR ── */
+.stats-bar { background: var(--panel); border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); padding: 2rem 2rem; }
+.stats-inner { display: flex; justify-content: center; gap: 4rem; max-width: 800px; margin: 0 auto; flex-wrap: wrap; }
+.stat-item { text-align: center; }
+.stat-num { font-family: 'Cinzel', serif; font-size: 2rem; font-weight: 700; color: var(--gold); display: block; }
+.stat-label { font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; letter-spacing: 0.25em; color: var(--text-muted); text-transform: uppercase; }
+
+/* ── SECTION COMMONS ── */
+section { padding: 4rem 1.5rem; }
+.section-header { text-align: center; margin-bottom: 3rem; }
+.section-tag { font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; letter-spacing: 0.4em; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+.section-title { font-family: 'Cinzel', serif; font-size: clamp(1.3rem,3.5vw,2.2rem); font-weight: 400; color: var(--text); letter-spacing: 0.08em; }
+.divider { width: 70px; height: 1px; background: linear-gradient(90deg,transparent,var(--gold),transparent); margin: 1.2rem auto 0; }
+
+/* ── SEARCH & FILTER ── */
+.search-bar {
+  max-width: 900px; margin: 0 auto 2rem;
+  display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: stretch;
+}
+.search-input {
+  flex: 1; min-width: 200px;
+  background: var(--surface); border: 0.5px solid var(--border);
+  color: var(--text); padding: 0.65rem 1rem;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--gold-dim); }
+.filter-select {
+  background: var(--surface); border: 0.5px solid var(--border);
+  color: var(--text); padding: 0.65rem 2.2rem 0.65rem 0.8rem;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.72rem;
+  outline: none; cursor: pointer; -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%238a7030'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.7rem center;
+  transition: border-color 0.2s;
+}
+.filter-select:focus { border-color: var(--gold-dim); }
+
+/* ── CASES GRID ── */
+.cases-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1px; background: var(--border); max-width: 1200px; margin: 0 auto;
+}
+.case-card {
+  background: var(--surface); padding: 1.75rem; position: relative;
+  cursor: pointer; transition: background 0.3s;
+}
+.case-card:hover { background: var(--panel); }
+.case-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.18em; padding: 3px 10px; margin-bottom: 0.9rem; text-transform: uppercase;
+}
+.label-uap { background: rgba(0,60,120,0.3); color: #6ab0f5; border: 0.5px solid rgba(106,176,245,0.3); }
+.label-paranormal { background: rgba(60,0,60,0.3); color: #c084fc; border: 0.5px solid rgba(192,132,252,0.3); }
+.label-mythology { background: rgba(50,30,0,0.3); color: #fbbf24; border: 0.5px solid rgba(251,191,36,0.3); }
+.label-cryptid { background: rgba(0,40,20,0.3); color: #4ade80; border: 0.5px solid rgba(74,222,128,0.3); }
+.label-anomaly { background: rgba(80,0,0,0.3); color: #f87171; border: 0.5px solid rgba(248,113,113,0.3); }
+.label-contact { background: rgba(0,50,80,0.3); color: #67e8f9; border: 0.5px solid rgba(103,232,249,0.3); }
+.case-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; line-height: 1.4; }
+.case-meta { font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; color: var(--text-muted); letter-spacing: 0.12em; margin-bottom: 0.9rem; }
+.case-excerpt { font-size: 0.8rem; color: var(--text-dim); line-height: 1.8; margin-bottom: 1.2rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.case-footer { display: flex; justify-content: space-between; align-items: center; }
+.case-views { font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; color: var(--text-muted); }
+.read-more { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; color: var(--gold-dim); text-decoration: none; transition: color 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; }
+.read-more::after { content: '→'; transition: transform 0.2s; }
+.case-card:hover .read-more { color: var(--gold); }
+.case-card:hover .read-more::after { transform: translateX(4px); }
+
+/* ── CASE DETAIL ── */
+.case-detail { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+.detail-back { display: flex; align-items: center; gap: 8px; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; color: var(--text-dim); cursor: pointer; margin-bottom: 2.5rem; background: none; border: none; transition: color 0.2s; text-transform: uppercase; }
+.detail-back:hover { color: var(--gold); }
+.detail-title { font-family: 'Cinzel', serif; font-size: clamp(1.5rem,4vw,2.4rem); font-weight: 600; color: var(--text); margin-bottom: 1rem; line-height: 1.3; }
+.detail-meta-row { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem; align-items: center; }
+.detail-meta-item { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.1em; }
+.detail-body { font-size: 0.92rem; color: var(--text-dim); line-height: 2; margin-bottom: 2.5rem; white-space: pre-wrap; }
+.media-container { margin-bottom: 2.5rem; }
+.media-container video, .media-container img, .media-container audio {
+  max-width: 100%; border: 0.5px solid var(--border);
+}
+.media-container audio { width: 100%; margin-top: 0.5rem; }
+
+/* ── COMMENTS ── */
+.comments-section { border-top: 0.5px solid var(--border); padding-top: 2rem; margin-top: 2rem; }
+.comments-title { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--text); margin-bottom: 1.5rem; letter-spacing: 0.08em; }
+.comment-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); margin-bottom: 2rem; }
+.comment-item { background: var(--surface); padding: 1.2rem 1.5rem; }
+.comment-author { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; color: var(--gold-dim); letter-spacing: 0.15em; margin-bottom: 0.4rem; }
+.comment-time { color: var(--text-muted); font-size: 0.55rem; }
+.comment-body { font-size: 0.83rem; color: var(--text-dim); line-height: 1.8; }
+.comment-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.form-input, .form-textarea, .form-select {
+  width: 100%; background: var(--surface); border: 0.5px solid var(--border);
+  color: var(--text); padding: 0.7rem 1rem;
+  font-family: 'Noto Serif JP', serif; font-size: 0.85rem; outline: none; transition: border-color 0.2s;
+  -webkit-appearance: none; appearance: none;
+}
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--gold-dim); }
+.form-textarea { min-height: 100px; resize: vertical; }
+
+/* ── SUBMIT PAGE ── */
+.submit-page { max-width: 720px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+.submit-page h2 { font-family: 'Cinzel', serif; font-size: 1.8rem; font-weight: 400; color: var(--text); margin-bottom: 1.5rem; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-group.full { grid-column: 1 / -1; }
+.form-label { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; letter-spacing: 0.22em; color: var(--text-muted); text-transform: uppercase; }
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%238a7030'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.8rem center; cursor: pointer;
+}
+.file-upload { border: 0.5px dashed var(--border); background: var(--surface); padding: 1.75rem; text-align: center; cursor: pointer; transition: border-color 0.2s; position: relative; }
+.file-upload:hover { border-color: var(--gold-dim); }
+.file-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.file-upload-text { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-muted); }
+.upload-icon { font-size: 1.4rem; opacity: 0.35; margin-bottom: 0.5rem; display: block; }
+.progress-bar { height: 3px; background: var(--border); margin-top: 0.5rem; border-radius: 2px; display: none; }
+.progress-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.3s; width: 0%; }
+.submit-btn {
+  width: 100%; background: transparent; border: 1px solid var(--gold-dim);
+  color: var(--gold); font-family: 'Cinzel', serif; font-size: 0.85rem;
+  letter-spacing: 0.2em; padding: 1rem; cursor: pointer; text-transform: uppercase;
+  transition: all 0.3s; margin-top: 0.5rem; position: relative; overflow: hidden;
+}
+.submit-btn::before { content: ''; position: absolute; inset: 0; background: var(--gold); transform: translateX(-100%); transition: transform 0.3s; z-index: -1; }
+.submit-btn:hover { color: var(--black); }
+.submit-btn:hover::before { transform: translateX(0); }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; letter-spacing: 0.15em; padding: 0.75rem 1.5rem; border: 0.5px solid; animation: toastIn 0.3s ease; }
+.toast-success { background: rgba(5,5,8,0.95); border-color: var(--green-ok); color: var(--green-ok); }
+.toast-error { background: rgba(5,5,8,0.95); border-color: var(--red-bright); color: var(--red-bright); }
+@keyframes toastIn { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
+
+/* ── ADMIN PAGE ── */
+.admin-page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+.admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
+.admin-header h2 { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 400; color: var(--text); }
+.admin-tabs { display: flex; gap: 1px; background: var(--border); margin-bottom: 2rem; }
+.admin-tab { flex: 1; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; padding: 0.7rem 1rem; text-align: center; background: var(--surface); color: var(--text-dim); cursor: pointer; border: none; text-transform: uppercase; transition: all 0.2s; }
+.admin-tab.active { background: var(--panel); color: var(--gold); }
+.admin-tab-content { display: none; }
+.admin-tab-content.active { display: block; }
+.mod-table { width: 100%; border-collapse: collapse; }
+.mod-table th { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; color: var(--text-muted); text-align: left; padding: 0.6rem 1rem; border-bottom: 0.5px solid var(--border); text-transform: uppercase; }
+.mod-table td { padding: 1rem; border-bottom: 0.5px solid var(--border); font-size: 0.82rem; color: var(--text-dim); vertical-align: top; }
+.mod-table tr:hover td { background: rgba(200,168,75,0.03); }
+.status-badge { font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; padding: 3px 10px; text-transform: uppercase; }
+.status-pending { background: rgba(50,30,0,0.3); color: var(--amber); border: 0.5px solid rgba(251,191,36,0.3); }
+.status-approved { background: rgba(0,40,20,0.3); color: var(--green-ok); border: 0.5px solid rgba(46,204,113,0.3); }
+.status-rejected { background: rgba(80,0,0,0.3); color: var(--red-bright); border: 0.5px solid rgba(192,57,43,0.3); }
+.mod-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.mod-card { background: var(--panel); border: 0.5px solid var(--border); margin-bottom: 1.2rem; padding: 1.2rem 1.4rem; transition: border-color 0.2s; }
+.mod-card:hover { border-color: rgba(200,168,75,0.3); }
+.mod-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.8rem; }
+.mod-card-title { font-family: 'Cinzel', serif; font-size: 0.95rem; color: var(--text); line-height: 1.4; flex: 1; }
+.mod-card-meta { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.mod-card-preview { font-size: 0.8rem; color: var(--text-dim); line-height: 1.7; margin-bottom: 0.8rem; border-left: 2px solid var(--border); padding-left: 0.8rem; }
+.mod-card-media { display: flex; gap: 0.8rem; align-items: flex-start; margin-bottom: 0.8rem; flex-wrap: wrap; }
+.mod-card-thumb { width: 100px; height: 70px; object-fit: cover; border: 0.5px solid var(--border); }
+.mod-card-video { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; color: var(--amber); border: 0.5px solid rgba(251,191,36,0.3); padding: 0.3rem 0.6rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+.mod-card-video:hover { background: rgba(251,191,36,0.1); }
+.mod-card-footer { display: flex; align-items: center; justify-content: space-between; border-top: 0.5px solid var(--border); padding-top: 0.8rem; margin-top: 0.4rem; }
+.action-btn { font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; letter-spacing: 0.1em; padding: 4px 12px; cursor: pointer; border: 0.5px solid; background: transparent; text-transform: uppercase; transition: all 0.2s; }
+.approve-btn { border-color: rgba(46,204,113,0.4); color: var(--green-ok); }
+.approve-btn:hover { background: rgba(46,204,113,0.15); }
+.reject-btn { border-color: rgba(192,57,43,0.4); color: var(--red-bright); }
+.reject-btn:hover { background: rgba(192,57,43,0.15); }
+
+/* ── AUTH MODAL ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 500; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 0.5px solid var(--border-bright); padding: 2.5rem; max-width: 400px; width: 90%; position: relative; }
+.modal h3 { font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 1.5rem; }
+.modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; font-family: 'Share Tech Mono', monospace; transition: color 0.2s; }
+.modal-close:hover { color: var(--text); }
+.auth-toggle { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; color: var(--text-dim); text-align: center; margin-top: 1rem; cursor: pointer; }
+.auth-toggle span { color: var(--gold-dim); text-decoration: underline; }
+
+/* ── LOADING ── */
+.loading { display: flex; align-items: center; justify-content: center; padding: 4rem; gap: 0.75rem; }
+.loading-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: loadPulse 0.9s ease-in-out infinite; }
+.loading-dot:nth-child(2) { animation-delay: 0.15s; }
+.loading-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes loadPulse { 0%,80%,100%{opacity:0.2; transform:scale(0.8)} 40%{opacity:1; transform:scale(1.1)} }
+.empty-state { text-align: center; padding: 4rem; font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.2em; }
+
+/* ── VIDEO GALLERY ── */
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1px; background: var(--border); max-width: 1200px; margin: 0 auto; }
+.video-card { background: var(--surface); cursor: pointer; transition: background 0.3s; }
+.video-card:hover { background: var(--panel); }
+.video-thumb { width: 100%; aspect-ratio: 16/9; background: var(--panel); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.play-btn { width: 46px; height: 46px; border: 1.5px solid rgba(200,168,75,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+.play-btn::after { content: ''; width: 0; height: 0; border-style: solid; border-width: 7px 0 7px 14px; border-color: transparent transparent transparent var(--gold); margin-left: 3px; }
+.video-card:hover .play-btn { background: rgba(200,168,75,0.12); border-color: var(--gold); transform: scale(1.08); }
+.video-info { padding: 1.1rem; }
+.video-title { font-family: 'Cinzel', serif; font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; line-height: 1.4; }
+.video-meta { font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; color: var(--text-muted); display: flex; justify-content: space-between; }
+
+/* ── NEWS TICKER ── */
+.news-ticker { background: rgba(139,32,32,0.12); border-bottom: 0.5px solid rgba(139,32,32,0.25); padding: 0.45rem 0; font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em; color: rgba(192,57,43,0.85); white-space: nowrap; overflow: hidden; }
+.ticker-inner { display: inline-block; animation: ticker 35s linear infinite; }
+@keyframes ticker { 0%{transform:translateX(100vw)} 100%{transform:translateX(-100%)} }
+
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+  .cases-grid { grid-template-columns: 1fr; }
+}
+
+/* ── LANGUAGE SWITCHER ── */
+.lang-switcher { position: relative; }
+.lang-btn {
+  font-family: 'Share Tech Mono', monospace; font-size: 0.63rem; letter-spacing: 0.1em;
+  background: transparent; border: 0.5px solid var(--border); color: var(--text-dim);
+  padding: 4px 10px; cursor: pointer; display: flex; align-items: center; gap: 5px;
+  transition: all 0.2s;
+}
+.lang-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+.lang-dropdown {
+  display: none; position: absolute; top: calc(100% + 6px); right: 0;
+  background: var(--surface); border: 0.5px solid var(--border-bright);
+  min-width: 150px; z-index: 200;
+}
+.lang-dropdown.open { display: block; }
+.lang-option {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em;
+  color: var(--text-dim); padding: 0.6rem 1rem; cursor: pointer;
+  transition: all 0.15s; border: none; background: transparent; width: 100%; text-align: left;
+}
+.lang-option:hover { background: rgba(200,168,75,0.06); color: var(--gold); }
+.lang-option.active { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="news-ticker" aria-hidden="true">
+  <span class="ticker-inner">
+    ◈ ENIGMA ARCHIVE — 世界怪奇現象記録庫　◈ 体験談・映像を随時募集中　◈ すべての投稿は編集チームが審査します　◈ CLASSIFIED / 機密指定 解除済み記録: 1947-2025　◈
+  </span>
+</div>
+
+<nav>
+  <a class="nav-logo" onclick="showPage('home')">ENIGMA ARCHIVE</a>
+  <ul class="nav-links">
+    <li><a onclick="showPage('home')" id="nav-home" class="active">ホーム</a></li>
+    <li><a onclick="showPage('cases')" id="nav-cases">事例記録</a></li>
+    <li><a onclick="showPage('gallery')" id="nav-gallery">映像記録</a></li>
+    <li><a onclick="showPage('submit')" id="nav-submit">投稿</a></li>
+    <li><a onclick="showPage('admin')" id="nav-admin" style="display:none">管理画面</a></li>
+  </ul>
+  <div class="nav-right">
+    <span id="user-display" style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);display:none"></span>
+    <button class="btn-sm btn-ghost" id="logout-btn" onclick="signOut()" style="display:none">ログアウト</button>
+    <button class="btn-sm btn-gold" id="login-btn" onclick="openModal()">ログイン</button>
+    <button class="btn-sm btn-red" onclick="showPage('submit')">体験談を投稿</button>
+    <div class="lang-switcher">
+      <button class="lang-btn" onclick="toggleLangMenu()" id="lang-btn">🌐 JA</button>
+      <div class="lang-dropdown" id="lang-dropdown">
+        <button class="lang-option active" onclick="setLang('ja')">🇯🇵 日本語</button>
+        <button class="lang-option" onclick="setLang('en')">🇺🇸 English</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════ HOME PAGE ══════════════════ -->
+<div id="page-home" class="page active">
+  <header class="hero">
+    <div class="scanlines"></div>
+    <div class="hero-content">
+      <div class="classified-stamp">◈ CLASSIFIED ARCHIVE — CASE FILES ◈</div>
+      <svg width="60" height="40" viewBox="0 0 60 40" style="margin:0 auto 1.5rem;display:block;opacity:0.6" aria-hidden="true">
+        <ellipse cx="30" cy="20" rx="28" ry="16" stroke="rgba(200,168,75,0.6)" stroke-width="1.5" fill="none"/>
+        <circle cx="30" cy="20" r="8" fill="rgba(200,168,75,0.1)" stroke="rgba(200,168,75,0.5)" stroke-width="1"/>
+        <circle cx="30" cy="20" r="4" fill="rgba(200,168,75,0.5)"/>
+      </svg>
+      <h1 class="site-title">ENIGMA<br>ARCHIVE</h1>
+      <p class="site-subtitle">世界怪奇現象 · UAP · 神話伝承 記録庫</p>
+      <p class="tagline">人類が記録してきた説明のつかない現象——<br>あなたの体験が、次の謎の鍵かもしれない。</p>
+      <div class="hero-btns">
+        <button class="btn-sm btn-gold" onclick="showPage('cases')" style="padding:10px 28px;font-size:0.72rem">記録を閲覧する</button>
+        <button class="btn-sm btn-red" onclick="showPage('submit')" style="padding:10px 28px;font-size:0.72rem">体験談を投稿</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat-item"><span class="stat-num" id="stat-cases">—</span><span class="stat-label">記録済み事例</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-videos">—</span><span class="stat-label">投稿映像</span></div>
+      <div class="stat-item"><span class="stat-num">92</span><span class="stat-label">対象国・地域</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-pending">—</span><span class="stat-label">審査待ち</span></div>
+    </div>
+  </div>
+
+  <section style="background:var(--deep)">
+    <div class="section-header">
+      <span class="section-tag">// FEATURED CASE FILES</span>
+      <h2 class="section-title">最新の事例記録</h2>
+      <div class="divider"></div>
+    </div>
+    <div id="home-cases" class="cases-grid">
+      <div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════════ CASES PAGE ══════════════════ -->
+<div id="page-cases" class="page">
+  <section>
+    <div class="section-header">
+      <span class="section-tag">// CASE FILE DATABASE</span>
+      <h2 class="section-title">事例記録データベース</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="search-bar" style="max-width:900px;margin:0 auto 2rem">
+      <input class="search-input" id="search-input" type="text" placeholder="キーワードで検索..." oninput="debounceSearch()">
+      <select class="filter-select" id="filter-category" onchange="loadCases()">
+        <option value="">すべてのカテゴリ</option>
+        <option value="uap">UAP</option>
+        <option value="paranormal">怪奇現象</option>
+        <option value="cryptid">UMA</option>
+        <option value="mythology">神話・伝承</option>
+        <option value="anomaly">時空・物理異常</option>
+        <option value="contact">コンタクト体験</option>
+      </select>
+      <select class="filter-select" id="filter-sort" onchange="loadCases()">
+        <option value="created_at">新着順</option>
+        <option value="view_count">閲覧数順</option>
+      </select>
+    </div>
+    <div id="cases-container" class="cases-grid">
+      <div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <button class="btn-sm btn-ghost" id="load-more-btn" onclick="loadMoreCases()" style="display:none;padding:10px 32px">さらに読み込む</button>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════════ CASE DETAIL PAGE ══════════════════ -->
+<div id="page-detail" class="page">
+  <div class="case-detail">
+    <button class="detail-back" onclick="showPage('cases')">← 事例一覧に戻る</button>
+    <div id="detail-content">
+      <div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ GALLERY PAGE ══════════════════ -->
+<div id="page-gallery" class="page">
+  <section>
+    <div class="section-header">
+      <span class="section-tag">// VIDEO EVIDENCE ARCHIVE</span>
+      <h2 class="section-title">映像記録ギャラリー</h2>
+      <div class="divider"></div>
+    </div>
+    <div id="gallery-container" class="gallery-grid">
+      <div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════════ SUBMIT PAGE ══════════════════ -->
+<div id="page-submit" class="page">
+  <div class="submit-page">
+    <span class="section-tag">// SUBMIT YOUR CASE</span>
+    <h2>体験談・証拠を投稿する</h2>
+    <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:2rem;line-height:1.9">
+      匿名での投稿も可能です。すべての投稿はスタッフが審査し、適切なカテゴリに分類の上で公開します。写真・動画・音声ファイルの添付を推奨します。
+    </p>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">投稿者名（匿名可）</label>
+        <input class="form-input" id="s-name" type="text" placeholder="匿名希望">
+      </div>
+      <div class="form-group">
+        <label class="form-label">連絡先メール（任意）</label>
+        <input class="form-input" id="s-email" type="email" placeholder="your@email.com">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">タイトル *</label>
+        <input class="form-input" id="s-title" type="text" placeholder="例: 深夜の山道で遭遇した発光体">
+      </div>
+      <div class="form-group">
+        <label class="form-label">カテゴリ *</label>
+        <select class="form-select" id="s-category">
+          <option value="">— 選択 —</option>
+          <option value="uap">UAP（未確認飛行物体）</option>
+          <option value="paranormal">怪奇現象・幽霊</option>
+          <option value="cryptid">UMA（未確認生物）</option>
+          <option value="mythology">神話・伝承</option>
+          <option value="anomaly">時空・物理的異常</option>
+          <option value="contact">コンタクト体験</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">発生国・地域</label>
+        <input class="form-input" id="s-country" type="text" placeholder="例: 日本 / 北海道">
+      </div>
+      <div class="form-group">
+        <label class="form-label">発生場所（都市・地名）</label>
+        <input class="form-input" id="s-region" type="text" placeholder="例: 札幌市郊外">
+      </div>
+      <div class="form-group">
+        <label class="form-label">発生日時（わかる範囲で）</label>
+        <input class="form-input" id="s-date" type="text" placeholder="例: 2024年10月頃 深夜">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">体験談・詳細 *</label>
+        <textarea class="form-textarea" id="s-description" style="min-height:160px" placeholder="できるだけ詳しくお書きください。何を見た・聞いた・感じたか、周囲の状況など..."></textarea>
+      </div>
+      <div class="form-group full">
+        <label class="form-label">証拠ファイル（動画・写真・音声）</label>
+        <div class="file-upload" id="file-drop-zone">
+          <input type="file" id="s-file" accept="video/*,image/*,audio/*" onchange="handleFileSelect(this)">
+          <span class="upload-icon">⬆</span>
+          <p class="file-upload-text" id="file-upload-text">クリックまたはドラッグ&ドロップ<br>動画・写真・音声 / 最大 500MB</p>
+        </div>
+        <div class="progress-bar" id="upload-progress"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitCase()">記録を投稿する ◈ SUBMIT CASE FILE</button>
+  </div>
+</div>
+
+<!-- ══════════════════ ADMIN PAGE ══════════════════ -->
+<div id="page-admin" class="page">
+  <div class="admin-page">
+    <div class="admin-header">
+      <h2>管理画面 — MODERATION</h2>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-muted)">管理者専用エリア</div>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('pending')">審査待ち <span id="badge-pending"></span></button>
+      <button class="admin-tab" onclick="switchAdminTab('approved')">承認済み</button>
+      <button class="admin-tab" onclick="switchAdminTab('rejected')">却下済み</button>
+      <button class="admin-tab" onclick="switchAdminTab('comments')">コメント管理</button>
+    </div>
+    <div id="admin-tab-pending" class="admin-tab-content active">
+      <div id="mod-pending-list">
+        <div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
+      </div>
+    </div>
+    <div id="admin-tab-approved" class="admin-tab-content">
+      <div id="mod-approved-list"></div>
+    </div>
+    <div id="admin-tab-rejected" class="admin-tab-content">
+      <div id="mod-rejected-list"></div>
+    </div>
+    <div id="admin-tab-comments" class="admin-tab-content">
+      <div id="mod-comments-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ AUTH MODAL ══════════════════ -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modal-title">ログイン</h3>
+    <div style="display:flex;flex-direction:column;gap:0.8rem;margin-bottom:1rem">
+      <div class="form-group">
+        <label class="form-label">メールアドレス</label>
+        <input class="form-input" id="auth-email" type="email" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">パスワード</label>
+        <input class="form-input" id="auth-password" type="password" placeholder="••••••••">
+      </div>
+    </div>
+    <button class="submit-btn" id="auth-btn" onclick="authAction()">ログイン</button>
+    <p class="auth-toggle">アカウントがない場合は <span onclick="toggleAuthMode()">新規登録</span></p>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// ⚠️ ここを編集してください
+const SUPABASE_URL = 'https://agdfhkuazogzmgfexmgx.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_owO_lJf6UkGUekoZ5VYl8Q_CKOilRkg';
+// Anthropic API key for translating case fields to English on approval.
+// 空のままなら承認時に prompt で入力を求めます。
+let ANTHROPIC_API_KEY = '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';
+// ══════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════
+// 🌐 多言語辞書 (i18n)
+// ══════════════════════════════════════════════════════════
+const I18N = {
+  ja: {
+    // Nav
+    nav_home: 'ホーム', nav_cases: '事例記録', nav_gallery: '映像記録',
+    nav_submit: '投稿', nav_admin: '管理画面',
+    nav_login: 'ログイン', nav_logout: 'ログアウト', nav_post_btn: '体験談を投稿',
+    // Hero
+    classified: '◈ CLASSIFIED ARCHIVE — CASE FILES ◈',
+    site_subtitle: '世界怪奇現象 · UAP · 神話伝承 記録庫',
+    tagline: '人類が記録してきた説明のつかない現象——\nあなたの体験が、次の謎の鍵かもしれない。',
+    btn_browse: '記録を閲覧する', btn_submit: '体験談を投稿',
+    // Stats
+    stat_cases: '記録済み事例', stat_videos: '投稿映像',
+    stat_countries: '対象国・地域', stat_pending: '審査待ち',
+    // Sections
+    tag_featured: '// FEATURED CASE FILES', title_featured: '最新の事例記録',
+    tag_cases: '// CASE FILE DATABASE', title_cases: '事例記録データベース',
+    tag_gallery: '// VIDEO EVIDENCE ARCHIVE', title_gallery: '映像記録ギャラリー',
+    tag_submit: '// SUBMIT YOUR CASE',
+    title_submit: '体験談・証拠を投稿する',
+    submit_desc: '匿名での投稿も可能です。すべての投稿はスタッフが審査し、適切なカテゴリに分類の上で公開します。写真・動画・音声ファイルの添付を推奨します。',
+    // Search
+    search_placeholder: 'キーワードで検索...',
+    filter_all: 'すべてのカテゴリ',
+    sort_new: '新着順', sort_views: '閲覧数順',
+    load_more: 'さらに読み込む',
+    // Categories
+    cat_uap: 'UAP（未確認飛行物体）', cat_paranormal: '怪奇現象・幽霊',
+    cat_cryptid: 'UMA（未確認生物）', cat_mythology: '神話・伝承',
+    cat_anomaly: '時空・物理的異常', cat_contact: 'コンタクト体験',
+    cat_other: 'その他',
+    // Case card
+    read_more: '記録を閲覧', views: 'views',
+    // Detail
+    back: '← 事例一覧に戻る',
+    comments_title: 'コメント・考察',
+    comment_name_ph: '匿名', comment_body_ph: 'この事例についての考察、類似体験など...',
+    comment_submit: 'コメントを投稿', no_comments: 'まだコメントはありません',
+    // Submit form
+    f_name: '投稿者名（匿名可）', f_name_ph: '匿名希望',
+    f_email: '連絡先メール（任意）', f_email_ph: 'your@email.com',
+    f_title: 'タイトル *', f_title_ph: '例: 深夜の山道で遭遇した発光体',
+    f_category: 'カテゴリ *',
+    f_country: '発生国・地域', f_country_ph: '例: 日本 / 北海道',
+    f_region: '発生場所（都市・地名）', f_region_ph: '例: 札幌市郊外',
+    f_date: '発生日時（わかる範囲で）', f_date_ph: '例: 2024年10月頃 深夜',
+    f_desc: '体験談・詳細 *', f_desc_ph: 'できるだけ詳しくお書きください。何を見た・聞いた・感じたか、周囲の状況など...',
+    f_file: '証拠ファイル（動画・写真・音声）',
+    f_file_ph: 'クリックまたはドラッグ&ドロップ\n動画・写真・音声 / 最大 500MB',
+    submit_btn: '記録を投稿する ◈ SUBMIT CASE FILE',
+    // Auth
+    login: 'ログイン', signup: '新規登録',
+    auth_email: 'メールアドレス', auth_pass: 'パスワード',
+    no_account: 'アカウントがない場合は', register: '新規登録',
+    have_account: 'アカウントをお持ちの方は', login_link: 'ログイン',
+    // Admin
+    admin_title: '管理画面 — MODERATION',
+    tab_pending: '審査待ち', tab_approved: '承認済み',
+    tab_rejected: '却下済み', tab_comments: 'コメント管理',
+    // Toast
+    toast_login_ok: 'ログインしました', toast_logout: 'ログアウトしました',
+    toast_posted: '投稿を受け付けました。審査後に公開されます。',
+    toast_comment: 'コメントを投稿しました',
+    toast_approved: '承認しました', toast_rejected: '却下しました',
+    err_fill: 'メールとパスワードを入力してください',
+    err_title: 'タイトルを入力してください',
+    err_cat: 'カテゴリを選択してください',
+    err_desc: '体験談を入力してください',
+    err_comment: 'コメントを入力してください',
+    empty_cases: '◈ 該当する記録が見つかりません',
+    empty_gallery: '映像記録はまだありません',
+    submitted_by: '投稿者', anonymous: '匿名',
+    // Ticker
+    ticker: '◈ ENIGMA ARCHIVE — 世界怪奇現象記録庫　◈ 体験談・映像を随時募集中　◈ すべての投稿は編集チームが審査します　◈ CLASSIFIED / 機密指定 解除済み記録: 1947-2025　◈',
+  },
+  en: {
+    nav_home: 'Home', nav_cases: 'Cases', nav_gallery: 'Gallery',
+    nav_submit: 'Submit', nav_admin: 'Admin',
+    nav_login: 'Login', nav_logout: 'Logout', nav_post_btn: 'Submit Your Case',
+    classified: '◈ CLASSIFIED ARCHIVE — CASE FILES ◈',
+    site_subtitle: 'Global Paranormal · UAP · Mythology Archive',
+    tagline: 'Unexplained phenomena recorded by humanity—\nyour experience may be the key to the next mystery.',
+    btn_browse: 'View Record', btn_submit: 'Submit Case',
+    stat_cases: 'Recorded Cases', stat_videos: 'Submitted Videos',
+    stat_countries: 'Countries', stat_pending: 'Pending Review',
+    tag_featured: '// FEATURED CASE FILES', title_featured: 'Latest Case Files',
+    tag_cases: '// CASE FILE DATABASE', title_cases: 'Case File Database',
+    tag_gallery: '// VIDEO EVIDENCE ARCHIVE', title_gallery: 'Video Evidence Archive',
+    tag_submit: '// SUBMIT YOUR CASE',
+    title_submit: 'Submit Your Experience',
+    submit_desc: 'Anonymous submissions are welcome. All submissions are reviewed by our staff and categorized before publication. Attaching photos, videos, or audio files is strongly encouraged.',
+    search_placeholder: 'Search by keyword...',
+    filter_all: 'All Categories',
+    sort_new: 'Newest', sort_views: 'Most Viewed',
+    load_more: 'Load More',
+    cat_uap: 'UAP (Unidentified Aerial Phenomena)', cat_paranormal: 'Paranormal / Ghosts',
+    cat_cryptid: 'Cryptids / UMA', cat_mythology: 'Mythology / Folklore',
+    cat_anomaly: 'Space-Time Anomalies', cat_contact: 'Contact Experiences',
+    cat_other: 'Other',
+    read_more: 'View Record', views: 'views',
+    back: '← Back to Cases',
+    comments_title: 'Comments & Analysis',
+    comment_name_ph: 'Anonymous', comment_body_ph: 'Your analysis, similar experiences...',
+    comment_submit: 'Post Comment', no_comments: 'No comments yet',
+    f_name: 'Your Name (anonymous OK)', f_name_ph: 'Anonymous',
+    f_email: 'Contact Email (optional)', f_email_ph: 'your@email.com',
+    f_title: 'Title *', f_title_ph: 'e.g. Strange light in the sky at midnight',
+    f_category: 'Category *',
+    f_country: 'Country / Region', f_country_ph: 'e.g. USA / Nevada',
+    f_region: 'Location (city / area)', f_region_ph: 'e.g. Rural outskirts',
+    f_date: 'Date / Time (approximate)', f_date_ph: 'e.g. October 2024, midnight',
+    f_desc: 'Description *', f_desc_ph: 'Please describe in detail what you saw, heard, or felt...',
+    f_file: 'Evidence Files (video / photo / audio)',
+    f_file_ph: 'Click or drag & drop\nVideo, photo, audio / Max 500MB',
+    submit_btn: 'Submit Case File ◈',
+    login: 'Login', signup: 'Sign Up',
+    auth_email: 'Email Address', auth_pass: 'Password',
+    no_account: 'No account?', register: 'Sign up',
+    have_account: 'Have an account?', login_link: 'Login',
+    admin_title: 'Admin — MODERATION',
+    tab_pending: 'Pending', tab_approved: 'Approved',
+    tab_rejected: 'Rejected', tab_comments: 'Comments',
+    toast_login_ok: 'Logged in successfully', toast_logout: 'Logged out',
+    toast_posted: 'Submitted! Will be published after review.',
+    toast_comment: 'Comment posted',
+    toast_approved: 'Approved', toast_rejected: 'Rejected',
+    err_fill: 'Please enter email and password',
+    err_title: 'Please enter a title',
+    err_cat: 'Please select a category',
+    err_desc: 'Please enter a description',
+    err_comment: 'Please enter a comment',
+    empty_cases: '◈ No matching records found',
+    empty_gallery: 'No video records yet',
+    submitted_by: 'Submitted by', anonymous: 'Anonymous',
+    ticker: '◈ ENIGMA ARCHIVE — Global Paranormal Database　◈ Submit your experiences & footage　◈ All submissions reviewed by staff　◈ CLASSIFIED records declassified: 1947-2025　◈',
+  }
+};
+
+
+// ── i18n STATE & FUNCTIONS ──────────────────────────────────
+let currentLang = 'ja';
+
+function detectLang() {
+  const saved = localStorage.getItem('enigma_lang');
+  if (saved && I18N[saved]) return saved;
+  const browser = (navigator.language || 'ja').substring(0, 2).toLowerCase();
+  return I18N[browser] ? browser : 'ja';
+}
+
+function t(key) {
+  return (I18N[currentLang] && I18N[currentLang][key]) || (I18N['ja'][key]) || key;
+}
+
+function setLang(lang) {
+  if (!I18N[lang]) return;
+  currentLang = lang;
+  localStorage.setItem('enigma_lang', lang);
+  applyTranslations();
+  // Lang button label
+  const flags = { ja:'🇯🇵 JA', en:'🇺🇸 EN' };
+  document.getElementById('lang-btn').textContent = flags[lang] || lang.toUpperCase();
+  // Active state
+  document.querySelectorAll('.lang-option').forEach(el => {
+    el.classList.toggle('active', el.textContent.includes(lang.toUpperCase()) || el.getAttribute('onclick')?.includes(`'${lang}'`));
+  });
+  closeLangMenu();
+  rerenderDynamicContent();
+}
+
+// Re-fetch & re-render any dynamic content currently visible so that
+// title_/description_<lang> columns are picked up after a language switch.
+function rerenderDynamicContent() {
+  if (typeof loadHomeCases === 'function' && document.getElementById('home-cases')) {
+    loadHomeCases();
+  }
+  if (typeof loadCases === 'function' && currentPage === 'cases') {
+    loadCases(true);
+  }
+  if (typeof loadVideos === 'function' && currentPage === 'gallery') {
+    loadVideos();
+  }
+  if (currentPage === 'detail' && currentCaseId && typeof openCase === 'function') {
+    openCase(currentCaseId);
+  }
+}
+
+function toggleLangMenu() {
+  document.getElementById('lang-dropdown').classList.toggle('open');
+}
+function closeLangMenu() {
+  document.getElementById('lang-dropdown').classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.lang-switcher')) closeLangMenu();
+});
+
+function applyTranslations() {
+  // Nav links
+  const navMap = { 'nav-home': 'nav_home', 'nav-cases': 'nav_cases',
+    'nav-gallery': 'nav_gallery', 'nav-submit': 'nav_submit', 'nav-admin': 'nav_admin' };
+  Object.entries(navMap).forEach(([id, key]) => {
+    const el = document.getElementById(id); if (el) el.textContent = t(key);
+  });
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  if (loginBtn) loginBtn.textContent = t('nav_login');
+  if (logoutBtn) logoutBtn.textContent = t('nav_logout');
+  document.querySelectorAll('.btn-red[onclick*="submit"]').forEach(el => el.textContent = t('nav_post_btn'));
+
+  // Ticker
+  const ticker = document.querySelector('.ticker-inner');
+  if (ticker) ticker.textContent = t('ticker');
+
+  // Hero
+  const stamp = document.querySelector('.classified-stamp');
+  if (stamp) stamp.textContent = t('classified');
+  const subtitle = document.querySelector('.site-subtitle');
+  if (subtitle) subtitle.textContent = t('site_subtitle');
+  const tagline = document.querySelector('.tagline');
+  if (tagline) tagline.innerHTML = t('tagline').replace('\n', '<br>');
+  const heroBtns = document.querySelectorAll('.hero-btns .btn-sm');
+  if (heroBtns[0]) heroBtns[0].textContent = t('btn_browse');
+  if (heroBtns[1]) heroBtns[1].textContent = t('btn_submit');
+
+  // Stats
+  const statLabels = document.querySelectorAll('.stat-label');
+  const statKeys = ['stat_cases', 'stat_videos', 'stat_countries', 'stat_pending'];
+  statLabels.forEach((el, i) => { if (statKeys[i]) el.textContent = t(statKeys[i]); });
+
+  // Section headers
+  applySection('tag_featured', 'title_featured');
+  applySection('tag_cases', 'title_cases');
+  applySection('tag_gallery', 'title_gallery');
+
+  // Submit page
+  const submitTag = document.querySelector('#page-submit .section-tag');
+  if (submitTag) submitTag.textContent = t('tag_submit');
+  const submitH2 = document.querySelector('#page-submit h2');
+  if (submitH2) submitH2.textContent = t('title_submit');
+  const submitDesc = document.querySelector('#page-submit p');
+  if (submitDesc) submitDesc.textContent = t('submit_desc');
+  const submitBtn = document.getElementById('submit-btn');
+  if (submitBtn && !submitBtn.textContent.includes('✓')) submitBtn.textContent = t('submit_btn');
+
+  // Search
+  const si = document.getElementById('search-input');
+  if (si) si.placeholder = t('search_placeholder');
+  const fc = document.getElementById('filter-category');
+  if (fc && fc.options[0]) fc.options[0].text = t('filter_all');
+  const fs = document.getElementById('filter-sort');
+  if (fs) { if (fs.options[0]) fs.options[0].text = t('sort_new'); if (fs.options[1]) fs.options[1].text = t('sort_views'); }
+  const lmb = document.getElementById('load-more-btn');
+  if (lmb) lmb.textContent = t('load_more');
+
+  // Submit form labels
+  applyFormLabel('s-name', 'f_name', 'f_name_ph');
+  applyFormLabel('s-email', 'f_email', 'f_email_ph');
+  applyFormLabel('s-title', 'f_title', 'f_title_ph');
+  applyFormLabel('s-country', 'f_country', 'f_country_ph');
+  applyFormLabel('s-region', 'f_region', 'f_region_ph');
+  applyFormLabel('s-date', 'f_date', 'f_date_ph');
+  applyFormLabel('s-description', 'f_desc', 'f_desc_ph');
+
+  // Category select options in submit form
+  const sCat = document.getElementById('s-category');
+  if (sCat) {
+    const catKeys = ['', 'cat_uap','cat_paranormal','cat_cryptid','cat_mythology','cat_anomaly','cat_contact','cat_other'];
+    Array.from(sCat.options).forEach((opt, i) => {
+      if (i === 0) opt.text = `— ${t('f_category').replace(' *','')} —`;
+      else if (catKeys[i]) opt.text = t(catKeys[i]);
+    });
+  }
+
+  // Auth modal
+  document.getElementById('modal-title').textContent = authMode === 'login' ? t('login') : t('signup');
+  document.getElementById('auth-btn').textContent = authMode === 'login' ? t('login') : t('signup');
+  const authToggleText = document.querySelector('.auth-toggle');
+  if (authToggleText) {
+    authToggleText.innerHTML = authMode === 'login'
+      ? `${t('no_account')} <span onclick="toggleAuthMode()">${t('register')}</span>`
+      : `${t('have_account')} <span onclick="toggleAuthMode()">${t('login_link')}</span>`;
+  }
+
+  // Admin tabs
+  const adminH2 = document.querySelector('.admin-header h2');
+  if (adminH2) adminH2.textContent = t('admin_title');
+  const tabKeys = ['tab_pending','tab_approved','tab_rejected','tab_comments'];
+  document.querySelectorAll('.admin-tab').forEach((tab, i) => {
+    if (tabKeys[i]) {
+      const badge = tab.querySelector('span');
+      const badgeHtml = badge ? badge.outerHTML : '';
+      tab.textContent = t(tabKeys[i]);
+      if (badge) tab.insertAdjacentHTML('beforeend', badgeHtml);
+    }
+  });
+
+  // Detail back button
+  const backBtn = document.querySelector('.detail-back');
+  if (backBtn) backBtn.innerHTML = t('back');
+
+  // File upload text
+  const fut = document.getElementById('file-upload-text');
+  if (fut && !fut.textContent.includes('✓')) fut.innerHTML = t('f_file_ph').replace('\n', '<br>');
+
+  document.body.style.fontFamily = "'Noto Serif JP', serif";
+}
+
+function applySection(tagKey, titleKey) {
+  document.querySelectorAll('.section-tag').forEach(el => {
+    if (el.textContent.trim().startsWith('//')) {
+      // match by approximate content
+    }
+  });
+  // Find by content pattern and replace
+  const sections = document.querySelectorAll('section, .section-header');
+  sections.forEach(sec => {
+    const tag = sec.querySelector('.section-tag');
+    const title = sec.querySelector('.section-title');
+    if (tag && title) {
+      const tagText = tag.textContent;
+      if (tagText.includes('FEATURED') || tagText.includes('最新') || tagText.includes('精选') || tagText.includes('주목') || tagText.includes('VEDETTE') || tagText.includes('DESTACAD')) {
+        tag.textContent = t('tag_featured'); title.textContent = t('title_featured');
+      } else if (tagText.includes('DATABASE') || tagText.includes('事例記録') || tagText.includes('데이터') || tagText.includes('DONNÉES') || tagText.includes('BASE')) {
+        tag.textContent = t('tag_cases'); title.textContent = t('title_cases');
+      } else if (tagText.includes('VIDEO') || tagText.includes('映像') || tagText.includes('视频') || tagText.includes('영상') || tagText.includes('VIDÉ') || tagText.includes('ARCH')) {
+        tag.textContent = t('tag_gallery'); title.textContent = t('title_gallery');
+      }
+    }
+  });
+}
+
+function applyFormLabel(inputId, labelKey, phKey) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const group = input.closest('.form-group');
+  if (group) {
+    const label = group.querySelector('.form-label');
+    if (label) label.textContent = t(labelKey);
+  }
+  if (phKey) input.placeholder = t(phKey);
+}
+
+
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── STATE ──────────────────────────────────────────────────
+let currentUser = null;
+let isAdmin = false;
+let currentPage = 'home';
+let casesOffset = 0;
+const CASES_PER_PAGE = 9;
+let authMode = 'login';
+let searchTimer = null;
+let currentCaseId = null;
+
+// カテゴリラベル設定（i18n対応）— ENモード時は英語表記に切り替える
+function getCatConfig() {
+  const labels = currentLang === 'en'
+    ? {
+        uap: 'UAP', paranormal: 'Paranormal/Ghosts', cryptid: 'UMA',
+        mythology: 'Mythology/Folklore', anomaly: 'Space-Time Anomaly',
+        contact: 'Contact Experience',
+      }
+    : {
+        uap: 'UAP', paranormal: '怪奇現象', cryptid: 'UMA',
+        mythology: '神話・伝承', anomaly: '時空異常', contact: 'コンタクト',
+      };
+  return {
+    uap:        { label: labels.uap,        cls: 'label-uap' },
+    paranormal: { label: labels.paranormal, cls: 'label-paranormal' },
+    cryptid:    { label: labels.cryptid,    cls: 'label-cryptid' },
+    mythology:  { label: labels.mythology,  cls: 'label-mythology' },
+    anomaly:    { label: labels.anomaly,    cls: 'label-anomaly' },
+    contact:    { label: labels.contact,    cls: 'label-contact' },
+  };
+}
+const CAT_CONFIG = {
+  uap:        { label: 'UAP',       cls: 'label-uap' },
+  paranormal: { label: '怪奇現象',  cls: 'label-paranormal' },
+  cryptid:    { label: 'UMA',       cls: 'label-cryptid' },
+  mythology:  { label: '神話・伝承',cls: 'label-mythology' },
+  anomaly:    { label: '時空異常',  cls: 'label-anomaly' },
+  contact:    { label: 'コンタクト',cls: 'label-contact' },
+};
+
+// ── INIT ───────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  // 言語初期化
+  currentLang = detectLang();
+  setLang(currentLang);
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) await handleSession(session);
+  await loadStats();
+  await loadHomeCases();
+
+  // Realtime: コメント追加を購読
+  sb.channel('comments').on('postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'comments' },
+    (payload) => {
+      if (currentCaseId && payload.new.case_id === currentCaseId) appendComment(payload.new);
+    }
+  ).subscribe();
+});
+
+// ── SESSION / AUTH ─────────────────────────────────────────
+async function handleSession(session) {
+  currentUser = session.user;
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  if (profile) { isAdmin = profile.is_admin || false; }
+  updateNavAuth();
+}
+
+function updateNavAuth() {
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const userDisplay = document.getElementById('user-display');
+  const adminNav = document.getElementById('nav-admin');
+  if (currentUser) {
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    userDisplay.style.display = 'inline';
+    userDisplay.textContent = currentUser.email.split('@')[0];
+    if (isAdmin) adminNav.style.display = 'inline';
+  } else {
+    loginBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
+    userDisplay.style.display = 'none';
+    adminNav.style.display = 'none';
+  }
+}
+
+function openModal() { document.getElementById('auth-modal').classList.add('open'); }
+function closeModal() { document.getElementById('auth-modal').classList.remove('open'); }
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('modal-title').textContent = authMode === 'login' ? t('login') : t('signup');
+  document.getElementById('auth-btn').textContent = authMode === 'login' ? t('login') : t('signup');
+  const toggle = document.querySelector('.auth-toggle');
+  if (toggle) toggle.innerHTML = authMode === 'login'
+    ? `${t('no_account')} <span onclick="toggleAuthMode()">${t('register')}</span>`
+    : `${t('have_account')} <span onclick="toggleAuthMode()">${t('login_link')}</span>`;
+}
+
+async function authAction() {
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-password').value;
+  if (!email || !password) { showToast(t('err_fill'), 'error'); return; }
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true;
+  if (authMode === 'login') {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { showToast('Error: ' + error.message, 'error'); btn.disabled = false; return; }
+    await handleSession(data.session);
+    closeModal();
+    showToast(t('toast_login_ok'), 'success');
+  } else {
+    const { error } = await sb.auth.signUp({ email, password });
+    if (error) { showToast('Error: ' + error.message, 'error'); btn.disabled = false; return; }
+    showToast(t('toast_posted'), 'success');
+    closeModal();
+  }
+  btn.disabled = false;
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  currentUser = null; isAdmin = false;
+  updateNavAuth();
+  showToast(t('toast_logout'), 'success');
+  if (currentPage === 'admin') showPage('home');
+}
+
+// ── PAGE NAVIGATION ────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+  currentPage = name;
+  window.scrollTo(0, 0);
+
+  if (name === 'cases') loadCases();
+  if (name === 'gallery') loadGallery();
+  if (name === 'admin') { if (!isAdmin) { showToast(currentLang === 'en' ? 'Admin access required' : '管理者権限が必要です', 'error'); showPage('home'); return; } loadModeration('pending'); }
+}
+
+// ── LOAD STATS ─────────────────────────────────────────────
+async function loadStats() {
+  const { count: cCount } = await sb.from('cases').select('*', { count: 'exact', head: true }).eq('status', 'approved');
+  const { count: vCount } = await sb.from('cases').select('*', { count: 'exact', head: true }).eq('status', 'approved').not('video_url', 'is', null);
+  const { count: pCount } = await sb.from('cases').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+  if (cCount !== null) animateCount('stat-cases', cCount);
+  if (vCount !== null) animateCount('stat-videos', vCount);
+  if (pCount !== null) animateCount('stat-pending', pCount);
+}
+
+function animateCount(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let n = 0; const step = Math.max(1, Math.floor(target / 40));
+  const t = setInterval(() => { n = Math.min(n + step, target); el.textContent = n.toLocaleString(); if (n >= target) clearInterval(t); }, 30);
+}
+
+// ── RENDER CASE CARD ───────────────────────────────────────
+function renderCaseCard(c, onclick) {
+  const cat = getCatConfig()[c.category] || { label: c.category, cls: 'label-uap' };
+  const title = localized(c, 'title');
+  const description = localized(c, 'description');
+  const excerpt = description.substring(0, 120) + (description.length > 120 ? '...' : '');
+  const incidentDate = localized(c, 'incident_date');
+  const country = localized(c, 'location_country');
+  return `
+    <div class="case-card" onclick="${onclick}">
+      <span class="case-label ${cat.cls}">◈ ${cat.label}</span>
+      <h3 class="case-title">${escHtml(title)}</h3>
+      <p class="case-meta">${escHtml(incidentDate)} ${country ? '— ' + escHtml(country) : ''} ${localized(c,'location_region') ? '/ ' + escHtml(localized(c,'location_region')) : ''}</p>
+      <p class="case-excerpt">${escHtml(excerpt)}</p>
+      <div class="case-footer">
+        <span class="case-views">👁 ${(c.view_count || 0).toLocaleString()} views</span>
+        <button class="read-more">${t('read_more')}</button>
+      </div>
+    </div>`;
+}
+
+// ── HOME CASES ─────────────────────────────────────────────
+async function loadHomeCases() {
+  const container = document.getElementById('home-cases');
+  const { data, error } = await sb.from('cases').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(6);
+  if (error || !data?.length) { container.innerHTML = '<div class="empty-state">記録はまだありません</div>'; return; }
+  container.innerHTML = data.map(c => renderCaseCard(c, `openCase('${c.id}')`)).join('');
+}
+
+// ── CASES LIST ─────────────────────────────────────────────
+async function loadCases(reset = true) {
+  if (reset) casesOffset = 0;
+  const container = document.getElementById('cases-container');
+  if (reset) container.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
+
+  const keyword = document.getElementById('search-input')?.value || '';
+  const category = document.getElementById('filter-category')?.value || '';
+  const sortBy = document.getElementById('filter-sort')?.value || 'created_at';
+
+  let q = sb.from('cases').select('*').eq('status', 'approved')
+    .order(sortBy, { ascending: false })
+    .range(casesOffset, casesOffset + CASES_PER_PAGE - 1);
+  if (keyword) q = q.ilike('title', `%${keyword}%`);
+  if (category) q = q.eq('category', category);
+
+  const { data, error } = await q;
+  if (error) { container.innerHTML = '<div class="empty-state">読み込みエラー</div>'; return; }
+  if (reset) container.innerHTML = '';
+  if (!data?.length && reset) { container.innerHTML = '<div class="empty-state">' + t('empty_cases') + '</div>'; return; }
+
+  data.forEach(c => { const div = document.createElement('div'); div.innerHTML = renderCaseCard(c, `openCase('${c.id}')`); container.appendChild(div.firstElementChild); });
+  document.getElementById('load-more-btn').style.display = data.length === CASES_PER_PAGE ? 'inline-block' : 'none';
+}
+
+async function loadMoreCases() { casesOffset += CASES_PER_PAGE; await loadCases(false); }
+function debounceSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(() => loadCases(), 300); }
+
+// ── CASE DETAIL ────────────────────────────────────────────
+async function openCase(id) {
+  currentCaseId = id;
+  showPage('detail');
+  const content = document.getElementById('detail-content');
+  content.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
+  await sb.rpc('increment_view_count', { case_id: id });
+  const { data: c, error } = await sb.from('cases').select('*').eq('id', id).single();
+  if (error || !c) { content.innerHTML = '<p style="color:var(--text-dim)">記録が見つかりません</p>'; return; }
+  const cat = getCatConfig()[c.category] || { label: c.category, cls: 'label-uap' };
+
+  let mediaHtml = '';
+  if (c.video_url) mediaHtml += `<div class="media-container"><video controls style="width:100%"><source src="${escHtml(c.video_url)}"></video></div>`;
+  if (c.image_url) mediaHtml += `<div class="media-container"><img src="${escHtml(c.image_url)}" alt="証拠写真"></div>`;
+  if (c.audio_url) mediaHtml += `<div class="media-container"><audio controls src="${escHtml(c.audio_url)}"></audio></div>`;
+
+  const detailTitle = localized(c, 'title');
+  const detailBody = localized(c, 'description');
+  const detailDate = localized(c, 'incident_date');
+  const detailCountry = localized(c, 'location_country');
+  content.innerHTML = `
+    <span class="case-label ${cat.cls}" style="margin-bottom:1.5rem">◈ ${cat.label}</span>
+    <h1 class="detail-title">${escHtml(detailTitle)}</h1>
+    <div class="detail-meta-row">
+      ${detailDate ? `<span class="detail-meta-item">📅 ${escHtml(detailDate)}</span>` : ''}
+      ${detailCountry ? `<span class="detail-meta-item">📍 ${escHtml(detailCountry)}${localized(c,'location_region') ? ' / ' + escHtml(localized(c,'location_region')) : ''}</span>` : ''}
+      <span class="detail-meta-item">${t('submitted_by')}: ${escHtml(c.submitter_name || t('anonymous'))}</span>
+      <span class="detail-meta-item">👁 ${(c.view_count || 0).toLocaleString()} views</span>
+    </div>
+    ${mediaHtml}
+    <p class="detail-body">${escHtml(detailBody)}</p>
+    <div class="comments-section" id="comments-section">
+      <h3 class="comments-title">${t('comments_title')}</h3>
+      <div id="comment-list" class="comment-list"></div>
+      <div class="comment-form">
+        <div class="form-group"><label class="form-label">${t('f_name')}</label><input class="form-input" id="c-name" placeholder="${t('comment_name_ph')}"></div>
+        <div class="form-group"><label class="form-label">${t('nav_cases')}</label><textarea class="form-textarea" id="c-body" placeholder="${t('comment_body_ph')}"></textarea></div>
+        <button class="submit-btn" onclick="submitComment('${id}')" style="margin-top:0.5rem">${t('comment_submit')}</button>
+      </div>
+    </div>`;
+  await loadComments(id);
+}
+
+async function loadComments(caseId) {
+  const list = document.getElementById('comment-list');
+  if (!list) return;
+  const { data } = await sb.from('comments').select('*').eq('case_id', caseId).eq('is_approved', true).order('created_at', { ascending: true });
+  if (!data?.length) { list.innerHTML = '<div class="empty-state" style="padding:2rem">' + t('no_comments') + '</div>'; return; }
+  list.innerHTML = data.map(renderComment).join('');
+}
+
+function renderComment(c) {
+  const d = new Date(c.created_at).toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return `<div class="comment-item"><p class="comment-author">${escHtml(c.author_name || t('anonymous'))} <span class="comment-time">${d}</span></p><p class="comment-body">${escHtml(c.body)}</p></div>`;
+}
+
+function appendComment(c) {
+  const list = document.getElementById('comment-list');
+  if (!list) return;
+  if (list.querySelector('.empty-state')) list.innerHTML = '';
+  list.insertAdjacentHTML('beforeend', renderComment(c));
+  list.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function submitComment(caseId) {
+  const name = document.getElementById('c-name')?.value || t('anonymous');
+  const body = document.getElementById('c-body')?.value || '';
+  if (!body.trim()) { showToast(t('err_comment'), 'error'); return; }
+  const { error } = await sb.from('comments').insert({ case_id: caseId, author_name: name || t('comment_name_ph'), body, user_id: currentUser?.id || null });
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  document.getElementById('c-body').value = '';
+  showToast(t('toast_comment'), 'success');
+}
+
+// ── GALLERY ────────────────────────────────────────────────
+async function loadGallery() {
+  const container = document.getElementById('gallery-container');
+  const { data } = await sb.from('cases').select('*').eq('status', 'approved').not('video_url', 'is', null).order('view_count', { ascending: false }).limit(12);
+  if (!data?.length) { container.innerHTML = '<div class="empty-state">' + t('empty_gallery') + '</div>'; return; }
+  const cat_bg = { uap: '#6ab0f5', paranormal: '#c084fc', cryptid: '#4ade80', mythology: '#fbbf24', anomaly: '#f87171', contact: '#67e8f9' };
+  container.innerHTML = data.map(c => {
+    const cat = getCatConfig()[c.category] || { label: c.category, cls: 'label-uap' };
+    const bg = cat_bg[c.category] || '#c8a84b';
+    return `<div class="video-card" onclick="openCase('${c.id}')">
+      <div class="video-thumb" style="background:var(--panel)">
+        ${c.image_url ? `<img src="${escHtml(c.image_url)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4">` : `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%, ${bg}22, transparent 70%)"></div>`}
+        <div class="play-btn" style="position:relative;z-index:1"></div>
+      </div>
+      <div class="video-info">
+        <h3 class="video-title">${escHtml(localized(c, 'title'))}</h3>
+        <div class="video-meta">
+          <span class="case-label ${cat.cls}" style="margin:0;padding:2px 8px">${cat.label}</span>
+          <span style="color:var(--gold-dim)">👁 ${(c.view_count||0).toLocaleString()}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SUBMIT CASE ────────────────────────────────────────────
+let selectedFile = null;
+function handleFileSelect(input) {
+  selectedFile = input.files[0];
+  if (selectedFile) document.getElementById('file-upload-text').textContent = `✓ ${selectedFile.name} (${(selectedFile.size/1024/1024).toFixed(1)}MB)`;
+}
+
+async function submitCase() {
+  const title = document.getElementById('s-title').value.trim();
+  const category = document.getElementById('s-category').value;
+  const description = document.getElementById('s-description').value.trim();
+  if (!title) { showToast(t('err_title'), 'error'); return; }
+  if (!category) { showToast(t('err_cat'), 'error'); return; }
+  if (!description) { showToast(t('err_desc'), 'error'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = currentLang === 'en' ? 'Sending...' : '送信中...';
+  let video_url = null, image_url = null, audio_url = null;
+
+  if (selectedFile) {
+    const bar = document.getElementById('upload-progress');
+    const fill = document.getElementById('progress-fill');
+    bar.style.display = 'block';
+    const ext = selectedFile.name.split('.').pop();
+    const fname = `${Date.now()}.${ext}`;
+    const type = selectedFile.type.startsWith('video') ? 'case-videos' : selectedFile.type.startsWith('image') ? 'case-images' : 'case-audio';
+    fill.style.width = '30%';
+    const { data: upData, error: upErr } = await sb.storage.from(type).upload(fname, selectedFile, { cacheControl: '3600', upsert: false });
+    fill.style.width = '80%';
+    if (!upErr && upData) {
+      const { data: urlData } = sb.storage.from(type).getPublicUrl(fname);
+      const url = urlData?.publicUrl;
+      if (type === 'case-videos') video_url = url;
+      else if (type === 'case-images') image_url = url;
+      else audio_url = url;
+    }
+    fill.style.width = '100%';
+    setTimeout(() => { bar.style.display = 'none'; fill.style.width = '0'; }, 800);
+  }
+
+  const payload = {
+    title, category, description,
+    submitter_name: document.getElementById('s-name').value || t('anonymous'),
+    submitter_email: document.getElementById('s-email').value || null,
+    location_country: document.getElementById('s-country').value || null,
+    location_region: document.getElementById('s-region').value || null,
+    incident_date: document.getElementById('s-date').value || null,
+    user_id: currentUser?.id || null,
+    status: 'pending', video_url, image_url, audio_url
+  };
+
+  const { error } = await sb.from('cases').insert(payload);
+  btn.disabled = false;
+  if (error) { showToast('送信に失敗しました: ' + error.message, 'error'); btn.textContent = '記録を投稿する ◈ SUBMIT CASE FILE'; return; }
+  btn.textContent = '✓ OK';
+  showToast(t('toast_posted'), 'success');
+  selectedFile = null;
+  ['s-title','s-category','s-description','s-name','s-email','s-country','s-region','s-date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('file-upload-text').textContent = 'クリックまたはドラッグ&ドロップ\n動画・写真・音声 / 最大 500MB';
+  setTimeout(() => { btn.textContent = '記録を投稿する ◈ SUBMIT CASE FILE'; btn.style.borderColor = ''; btn.style.color = ''; }, 3000);
+}
+
+// ── ADMIN / MODERATION ─────────────────────────────────────
+async function loadModeration(status) {
+  const listId = `mod-${status}-list`;
+  const container = document.getElementById(listId);
+  if (!container) return;
+  container.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
+
+  const { data, error } = await sb.from('cases').select('*').eq('status', status).order('created_at', { ascending: false });
+  if (error) { container.innerHTML = '<div class="empty-state">読み込みエラー</div>'; return; }
+  if (!data?.length) { container.innerHTML = '<div class="empty-state">◈ 該当なし</div>'; return; }
+
+  if (status === 'pending') {
+    const badge = document.getElementById('badge-pending');
+    if (badge) badge.textContent = data.length ? ` (${data.length})` : '';
+  }
+
+  container.innerHTML = data.map(c => {
+    const cat = getCatConfig()[c.category] || { label: c.category, cls: 'label-uap' };
+    const d = new Date(c.created_at).toLocaleDateString('ja-JP');
+    const preview = (c.description || '').substring(0, 120) + ((c.description || '').length > 120 ? '…' : '');
+    const actions = status === 'pending'
+      ? `<button class="action-btn approve-btn" onclick="moderateCase('${c.id}','approved')">✦ 承認</button>
+         <button class="action-btn reject-btn" onclick="moderateCase('${c.id}','rejected')">✕ 却下</button>`
+      : status === 'approved'
+      ? `<button class="action-btn reject-btn" onclick="moderateCase('${c.id}','rejected')">非公開に</button>`
+      : `<button class="action-btn approve-btn" onclick="moderateCase('${c.id}','approved')">再承認</button>`;
+    const mediaHtml = (c.image_url || c.video_url) ? `
+      <div class="mod-card-media">
+        ${c.image_url ? `<img class="mod-card-thumb" src="${escHtml(c.image_url)}" alt="thumbnail" onerror="this.style.display='none'">` : ''}
+        ${c.video_url ? `<a class="mod-card-video" href="${escHtml(c.video_url)}" target="_blank" rel="noopener">▶ 動画を確認</a>` : ''}
+      </div>` : '';
+    return `<div class="mod-card">
+      <div class="mod-card-header">
+        <div class="mod-card-title">${escHtml(c.title)}</div>
+        <span class="case-label ${cat.cls}" style="margin:0;white-space:nowrap">${cat.label}</span>
+      </div>
+      <div class="mod-card-meta">
+        <span>👤 ${escHtml(c.submitter_name || t('anonymous'))}</span>
+        <span>📅 ${escHtml(c.incident_date || '—')}</span>
+        <span>📍 ${escHtml(c.location_country || '—')}${c.location_region ? ' / ' + escHtml(c.location_region) : ''}</span>
+        <span style="margin-left:auto">🕐 ${d}</span>
+      </div>
+      ${preview ? `<div class="mod-card-preview">${escHtml(preview)}</div>` : ''}
+      ${mediaHtml}
+      <div class="mod-card-footer">
+        <div class="mod-actions">${actions}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadCommentModeration() {
+  const container = document.getElementById('mod-comments-list');
+  container.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
+  const { data } = await sb.from('comments').select('*, cases(title)').order('created_at', { ascending: false }).limit(50);
+  if (!data?.length) { container.innerHTML = '<div class="empty-state">◈ コメントはありません</div>'; return; }
+  container.innerHTML = `
+    <table class="mod-table">
+      <thead><tr><th>事例</th><th>投稿者</th><th>内容</th><th>状態</th><th>操作</th></tr></thead>
+      <tbody>${data.map(c => `<tr>
+        <td style="font-size:0.78rem;color:var(--text)">${escHtml(c.cases?.title || '—')}</td>
+        <td>${escHtml(c.author_name || '匿名')}</td>
+        <td style="max-width:240px;font-size:0.78rem">${escHtml((c.body||'').substring(0,80))}${c.body?.length>80?'...':''}</td>
+        <td><span class="status-badge ${c.is_approved ? 'status-approved' : 'status-rejected'}">${c.is_approved?'表示中':'非表示'}</span></td>
+        <td><div class="mod-actions">
+          ${c.is_approved
+            ? `<button class="action-btn reject-btn" onclick="toggleComment('${c.id}',false)">非表示</button>`
+            : `<button class="action-btn approve-btn" onclick="toggleComment('${c.id}',true)">表示</button>`}
+          <button class="action-btn reject-btn" onclick="deleteComment('${c.id}')">削除</button>
+        </div></td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+// Anthropic APIで日本語テキストを英語に翻訳する。失敗時は null を返す。
+async function translateToEn(text) {
+  const src = (text == null ? '' : String(text)).trim();
+  if (!src) return null;
+  if (!ANTHROPIC_API_KEY) {
+    ANTHROPIC_API_KEY = (prompt('Anthropic APIキーを入力してください（翻訳に使用します）') || '').trim();
+    if (!ANTHROPIC_API_KEY) return null;
+  }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 256,
+        messages: [{
+          role: 'user',
+          content: `Translate the following Japanese text to English concisely. Return only the translated text, nothing else: ${src}`
+        }]
+      })
+    });
+    if (!res.ok) { console.error('translate failed', res.status, await res.text()); return null; }
+    const data = await res.json();
+    const out = (data?.content?.[0]?.text || '').trim();
+    return out || null;
+  } catch (e) {
+    console.error('translate error', e);
+    return null;
+  }
+}
+
+async function moderateCase(id, status) {
+  // 承認時、英語フィールドが未設定なら翻訳して保存する。
+  if (status === 'approved') {
+    const { data: row, error: fetchErr } = await sb
+      .from('cases')
+      .select('incident_date, incident_date_en, location_country, location_country_en, location_region, location_region_en')
+      .eq('id', id)
+      .single();
+    if (fetchErr) { showToast('更新失敗', 'error'); return; }
+    if (row) {
+      const isEmpty = v => v == null || String(v).trim() === '';
+      const transFields = [
+        ['incident_date', 'incident_date_en'],
+        ['location_country', 'location_country_en'],
+        ['location_region', 'location_region_en']
+      ];
+      const enUpdate = {};
+      for (const [ja, en] of transFields) {
+        if (isEmpty(row[en]) && !isEmpty(row[ja])) {
+          const translated = await translateToEn(row[ja]);
+          if (translated) enUpdate[en] = translated;
+        }
+      }
+      if (Object.keys(enUpdate).length) {
+        const { error: enErr } = await sb.from('cases').update(enUpdate).eq('id', id);
+        if (enErr) console.error('英語翻訳の保存に失敗', enErr);
+      }
+    }
+  }
+  const { error } = await sb.from('cases').update({ status }).eq('id', id);
+  if (error) { showToast('更新失敗', 'error'); return; }
+  showToast(status === 'approved' ? t('toast_approved') : t('toast_rejected'), 'success');
+  const currentTab = document.querySelector('.admin-tab.active')?.textContent.includes('審査') ? 'pending' : document.querySelector('.admin-tab.active')?.textContent.includes('承認') ? 'approved' : 'rejected';
+  await loadModeration(currentTab || 'pending');
+  await loadStats();
+}
+
+async function toggleComment(id, approved) {
+  await sb.from('comments').update({ is_approved: approved }).eq('id', id);
+  showToast(approved ? '表示しました' : '非表示にしました', 'success');
+  loadCommentModeration();
+}
+
+async function deleteComment(id) {
+  if (!confirm('このコメントを削除しますか？')) return;
+  await sb.from('comments').delete().eq('id', id);
+  showToast('削除しました', 'success');
+  loadCommentModeration();
+}
+
+function switchAdminTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-content').forEach(t => t.classList.remove('active'));
+  const tabs = ['pending','approved','rejected','comments'];
+  const idx = tabs.indexOf(tab);
+  document.querySelectorAll('.admin-tab')[idx]?.classList.add('active');
+  document.getElementById('admin-tab-' + tab)?.classList.add('active');
+  if (tab === 'comments') loadCommentModeration();
+  else loadModeration(tab);
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Return c[field+'_'+currentLang] if available, otherwise c[field] (Japanese).
+// Used for title / description rendering on cards & detail.
+function localized(c, field) {
+  if (!c) return '';
+  if (currentLang && currentLang !== 'ja') {
+    const v = c[`${field}_${currentLang}`];
+    if (v != null && String(v).trim() !== '') return v;
+  }
+  return c[field] || '';
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ドラッグ&ドロップ
+const dz = document.getElementById('file-drop-zone');
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--gold-dim)'; });
+  dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.style.borderColor = '';
+    const f = e.dataTransfer.files[0];
+    if (f) { selectedFile = f; document.getElementById('file-upload-text').textContent = `✓ ${f.name} (${(f.size/1024/1024).toFixed(1)}MB)`; }
+  });
+}
+</script>
+</body>
+</html>

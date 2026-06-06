@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENIGMA ARCHIVE — 記事自動生成ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+JP:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #050508; --deep: #0a0a12; --surface: #0f0f1a;
+  --panel: #14141f; --border: rgba(180,140,60,0.18);
+  --border-bright: rgba(180,140,60,0.45);
+  --gold: #c8a84b; --gold-dim: #8a7030;
+  --red-bright: #c0392b;
+  --text: #d4cfc0; --text-dim: #7a7568; --text-muted: #3a3832;
+  --green: #2ecc71; --blue: #6ab0f5; --purple: #c084fc; --amber: #fbbf24;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--black); color: var(--text);
+  font-family: 'Noto Serif JP', serif; font-weight: 300;
+  line-height: 1.8; min-height: 100vh;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999; opacity: 0.5;
+}
+
+header {
+  background: var(--deep); border-bottom: 0.5px solid var(--border);
+  padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 0.2em; color: var(--gold); }
+.logo span { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.2em; display: block; margin-top: 2px; }
+
+.main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; display: grid; grid-template-columns: 380px 1fr; gap: 2rem; align-items: start; }
+@media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+
+/* ── PANEL ── */
+.panel { background: var(--surface); border: 0.5px solid var(--border); }
+.panel-header {
+  padding: 1rem 1.5rem; border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.panel-tag { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; letter-spacing: 0.25em; color: var(--gold-dim); text-transform: uppercase; }
+.panel-body { padding: 1.5rem; }
+
+/* ── FORM ── */
+.form-group { margin-bottom: 1.1rem; }
+.form-label { display: block; font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; letter-spacing: 0.22em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem; }
+.form-input, .form-select, .form-textarea {
+  width: 100%; background: var(--panel); border: 0.5px solid var(--border);
+  color: var(--text); padding: 0.65rem 0.9rem;
+  font-family: 'Noto Serif JP', serif; font-size: 0.85rem; outline: none;
+  transition: border-color 0.2s; -webkit-appearance: none;
+}
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold-dim); }
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%238a7030'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.8rem center; cursor: pointer;
+}
+.form-textarea { min-height: 80px; resize: vertical; line-height: 1.7; }
+
+.keyword-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip {
+  font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+  padding: 4px 12px; border: 0.5px solid var(--border); background: var(--panel);
+  color: var(--text-dim); cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+}
+.chip:hover, .chip.active { border-color: var(--gold-dim); color: var(--gold); background: rgba(200,168,75,0.06); }
+
+/* ── SOURCE SELECTOR ── */
+.source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+.source-card {
+  border: 0.5px solid var(--border); background: var(--panel); padding: 0.75rem;
+  cursor: pointer; transition: all 0.2s; text-align: center; position: relative;
+}
+.source-card.selected { border-color: var(--gold-dim); background: rgba(200,168,75,0.06); }
+.source-card.selected::after { content: '✓'; position: absolute; top: 4px; right: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--gold); }
+.source-icon { font-size: 1.3rem; display: block; margin-bottom: 4px; opacity: 0.7; }
+.source-name { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; color: var(--text-dim); letter-spacing: 0.1em; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: 'Share Tech Mono', monospace; font-size: 0.68rem; letter-spacing: 0.18em;
+  padding: 0.7rem 1.2rem; cursor: pointer; border: 1px solid; background: transparent;
+  text-transform: uppercase; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-gold { border-color: var(--gold-dim); color: var(--gold); }
+.btn-gold:hover { background: var(--gold); color: var(--black); }
+.btn-green { border-color: rgba(46,204,113,0.5); color: var(--green); }
+.btn-green:hover { background: rgba(46,204,113,0.12); }
+.btn-red { border-color: rgba(192,57,43,0.5); color: var(--red-bright); }
+.btn-red:hover { background: rgba(192,57,43,0.12); }
+.btn-full { width: 100%; justify-content: center; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── PREVIEW PANEL ── */
+.preview-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 400px; text-align: center; gap: 1rem;
+}
+.preview-empty-icon { font-size: 3rem; opacity: 0.15; }
+.preview-empty-text { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--text-muted); }
+
+.article-preview { padding: 0; }
+.preview-meta { padding: 1.5rem; border-bottom: 0.5px solid var(--border); }
+.preview-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.18em; padding: 3px 10px; margin-bottom: 1rem; text-transform: uppercase;
+}
+.label-uap { background: rgba(0,60,120,0.3); color: #6ab0f5; border: 0.5px solid rgba(106,176,245,0.3); }
+.label-paranormal { background: rgba(60,0,60,0.3); color: #c084fc; border: 0.5px solid rgba(192,132,252,0.3); }
+.label-mythology { background: rgba(50,30,0,0.3); color: #fbbf24; border: 0.5px solid rgba(251,191,36,0.3); }
+.label-cryptid { background: rgba(0,40,20,0.3); color: #4ade80; border: 0.5px solid rgba(74,222,128,0.3); }
+.label-anomaly { background: rgba(80,0,0,0.3); color: #f87171; border: 0.5px solid rgba(248,113,113,0.3); }
+.label-contact { background: rgba(0,50,80,0.3); color: #67e8f9; border: 0.5px solid rgba(103,232,249,0.3); }
+
+.preview-title { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 0.75rem; }
+.preview-subtitle { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1rem; }
+.preview-meta-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.preview-meta-item { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.1em; }
+
+.preview-body { padding: 1.5rem; }
+.preview-body p { font-size: 0.9rem; color: var(--text-dim); line-height: 2; margin-bottom: 1.2rem; }
+.preview-body h3 { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--text); margin-bottom: 0.75rem; margin-top: 1.5rem; letter-spacing: 0.06em; }
+.preview-body ul { padding-left: 1.5rem; margin-bottom: 1.2rem; }
+.preview-body li { font-size: 0.88rem; color: var(--text-dim); line-height: 1.9; }
+
+.preview-source {
+  padding: 1rem 1.5rem; border-top: 0.5px solid var(--border);
+  font-family: 'Share Tech Mono', monospace; font-size: 0.58rem;
+  color: var(--text-muted); letter-spacing: 0.1em;
+  display: flex; align-items: center; gap: 8px;
+}
+.source-badge { padding: 2px 8px; border: 0.5px solid var(--border); }
+
+.preview-actions { padding: 1.5rem; border-top: 0.5px solid var(--border); display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+/* ── LOADING / STATUS ── */
+.status-bar {
+  padding: 0.75rem 1.5rem; border-top: 0.5px solid var(--border);
+  font-family: 'Share Tech Mono', monospace; font-size: 0.62rem;
+  letter-spacing: 0.12em; display: flex; align-items: center; gap: 10px;
+  min-height: 44px;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.status-idle { background: var(--text-muted); }
+.status-loading { background: var(--amber); animation: blink 0.8s infinite; }
+.status-ok { background: var(--green); }
+.status-error { background: var(--red-bright); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.step-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+.step-item {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.62rem;
+  color: var(--text-muted); letter-spacing: 0.1em; padding: 0.5rem 0.75rem;
+  border: 0.5px solid transparent; transition: all 0.3s;
+}
+.step-item.active { color: var(--amber); border-color: rgba(251,191,36,0.2); background: rgba(251,191,36,0.04); }
+.step-item.done { color: var(--green); border-color: rgba(46,204,113,0.2); background: rgba(46,204,113,0.04); }
+.step-item.error { color: var(--red-bright); }
+.step-num { font-size: 0.55rem; opacity: 0.5; width: 16px; }
+
+/* ── HISTORY ── */
+.history-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+.history-item {
+  background: var(--surface); padding: 0.9rem 1.2rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.history-title { font-family: 'Cinzel', serif; font-size: 0.82rem; color: var(--text); flex: 1; }
+.history-status { font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; padding: 2px 8px; }
+.history-posted { background: rgba(46,204,113,0.1); color: var(--green); border: 0.5px solid rgba(46,204,113,0.3); }
+.history-draft { background: rgba(251,191,36,0.1); color: var(--amber); border: 0.5px solid rgba(251,191,36,0.3); }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 10000; font-family: 'Share Tech Mono', monospace; font-size: 0.68rem; letter-spacing: 0.12em; padding: 0.75rem 1.5rem; border: 0.5px solid; animation: toastIn 0.3s ease; max-width: 360px; }
+.toast-success { background: rgba(5,5,8,0.97); border-color: var(--green); color: var(--green); }
+.toast-error { background: rgba(5,5,8,0.97); border-color: var(--red-bright); color: var(--red-bright); }
+.toast-info { background: rgba(5,5,8,0.97); border-color: var(--blue); color: var(--blue); }
+@keyframes toastIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── CONFIG MODAL ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 0.5px solid var(--border-bright); padding: 2rem; max-width: 480px; width: 90%; position: relative; }
+.modal h3 { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--text); margin-bottom: 1.5rem; }
+.modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; font-family: 'Share Tech Mono', monospace; }
+.config-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem; line-height: 1.6; }
+
+.divider-line { height: 0.5px; background: var(--border); margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">ENIGMA ARCHIVE <span>ARTICLE GENERATOR — AI自動記事生成ツール</span></div>
+  </div>
+  <div style="display:flex;gap:0.75rem;align-items:center">
+    <button class="btn btn-gold" onclick="openConfig()">⚙ API設定</button>
+    <a href="https://timely-fox-8ff407.netlify.app/" class="btn btn-gold" id="site-link" target="_blank" style="font-size:0.62rem">サイトを開く ↗</a>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ── 左カラム: 入力 ── -->
+  <div style="display:flex;flex-direction:column;gap:1.5rem">
+
+    <!-- キーワード入力 -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="status-dot status-idle" id="search-dot"></span>
+        <span class="panel-tag">// Step 1 — キーワード入力</span>
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label class="form-label">検索キーワード（日本語 or 英語）</label>
+          <input class="form-input" id="keyword" type="text" placeholder="例: ロズウェル事件、Bermuda Triangle" onkeydown="if(event.key==='Enter')fetchSources()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">よく使うキーワード</label>
+          <div class="keyword-chips" id="preset-chips"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">カテゴリ</label>
+          <select class="form-select" id="category">
+            <option value="uap">UAP（未確認飛行物体）</option>
+            <option value="paranormal">怪奇現象・幽霊</option>
+            <option value="cryptid">UMA（未確認生物）</option>
+            <option value="mythology">神話・伝承</option>
+            <option value="anomaly">時空・物理的異常</option>
+            <option value="contact">コンタクト体験</option>
+          </select>
+        </div>
+        <button class="btn btn-gold btn-full" onclick="fetchSources()" id="fetch-btn">
+          <span>🔍</span> 情報を収集する
+        </button>
+      </div>
+      <div class="status-bar" id="fetch-status">
+        <span class="status-dot status-idle"></span>
+        <span style="color:var(--text-muted)">キーワードを入力して情報収集を開始</span>
+      </div>
+    </div>
+
+    <!-- ソース選択 -->
+    <div class="panel" id="source-panel" style="display:none">
+      <div class="panel-header">
+        <span class="status-dot status-ok"></span>
+        <span class="panel-tag">// Step 2 — ソース確認・選択</span>
+      </div>
+      <div class="panel-body">
+        <div id="source-results"></div>
+        <div id="image-picker"></div>
+        <div class="divider-line"></div>
+        <div class="form-group">
+          <label class="form-label">記事のトーン</label>
+          <select class="form-select" id="tone">
+            <option value="investigative">調査報告書（客観的・詳細）</option>
+            <option value="mysterious">ミステリアス（引き込む文体）</option>
+            <option value="academic">学術的（考察重視）</option>
+            <option value="narrative">ナラティブ（物語形式）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">記事の長さ</label>
+          <select class="form-select" id="length">
+            <option value="short">短め（300〜500字）</option>
+            <option value="medium" selected>標準（600〜900字）</option>
+            <option value="long">詳細（1000〜1500字）</option>
+          </select>
+        </div>
+        <button class="btn btn-gold btn-full" onclick="generateArticle()" id="gen-btn">
+          <span>✦</span> AIで記事を生成する
+        </button>
+      </div>
+    </div>
+
+    <!-- 進行ステップ -->
+    <div class="panel" id="steps-panel" style="display:none">
+      <div class="panel-header">
+        <span class="status-dot status-loading" id="steps-dot"></span>
+        <span class="panel-tag">// 生成プロセス</span>
+      </div>
+      <div class="panel-body">
+        <div class="step-list" id="step-list"></div>
+      </div>
+    </div>
+
+    <!-- 投稿履歴 -->
+    <div class="panel" id="history-panel">
+      <div class="panel-header">
+        <span class="panel-tag">// 投稿履歴</span>
+      </div>
+      <div class="panel-body" id="history-body">
+        <p style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-muted);letter-spacing:0.15em">まだ投稿はありません</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 右カラム: プレビュー ── -->
+  <div class="panel" style="position:sticky;top:1rem">
+    <div class="panel-header">
+      <span class="status-dot" id="preview-dot" style="background:var(--text-muted)"></span>
+      <span class="panel-tag">// Step 3 — プレビュー & 投稿</span>
+    </div>
+    <div id="preview-area">
+      <div class="preview-empty">
+        <span class="preview-empty-icon">📄</span>
+        <span class="preview-empty-text">キーワードを入力して記事を生成してください</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── API設定モーダル ── -->
+<div class="modal-overlay" id="config-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeConfig()">✕</button>
+    <h3>⚙ API設定</h3>
+    <div class="form-group">
+      <label class="form-label">Claude API（Netlify Function 経由）</label>
+      <input class="form-input" value="/api/claude" disabled>
+      <p class="config-note">Anthropic API キーは Netlify の環境変数 <code>ANTHROPIC_API_KEY</code> に設定されており、ブラウザには露出しません。</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Supabase URL</label>
+      <input class="form-input" id="cfg-sb-url" type="text" placeholder="https://xxxxx.supabase.co">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Supabase Anon Key</label>
+      <input class="form-input" id="cfg-sb-key" type="password" placeholder="eyJ...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">サイトURL（任意）</label>
+      <input class="form-input" id="cfg-site-url" type="text" placeholder="https://timely-fox-8ff407.netlify.app/">
+    </div>
+    <div class="divider-line"></div>
+    <button class="btn btn-gold btn-full" onclick="saveConfig()">設定を保存</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── CONFIG ────────────────────────────────────────────────
+// Anthropic API は Netlify Function 経由で呼び出す。
+// API キーはサーバー側（環境変数 ANTHROPIC_API_KEY）に保持し、ブラウザには露出しない。
+const CLAUDE_ENDPOINT = '/api/claude';
+
+let config = {
+  sbUrl: 'https://agdfhkuazogzmgfexmgx.supabase.co',
+  sbKey: 'sb_publishable_owO_lJf6UkGUekoZ5VYl8Q_CKOilRkg',
+  siteUrl: 'https://timely-fox-8ff407.netlify.app/'
+};
+
+let sbClient = null;
+let generatedArticle = null;
+let fetchedSources = [];
+let fetchedImages = [];
+let selectedImageUrl = null;
+let selectedImageMeta = null;
+let history = [];
+
+// 1記事に表示する候補画像の最大枚数（3〜5枚を想定し、選択肢として最大6枚保持）
+const MAX_IMAGES = 6;
+
+const CAT_CONFIG = {
+  uap:        { label: 'UAP',       cls: 'label-uap' },
+  paranormal: { label: '怪奇現象',  cls: 'label-paranormal' },
+  cryptid:    { label: 'UMA',       cls: 'label-cryptid' },
+  mythology:  { label: '神話・伝承',cls: 'label-mythology' },
+  anomaly:    { label: '時空異常',  cls: 'label-anomaly' },
+  contact:    { label: 'コンタクト',cls: 'label-contact' },
+};
+
+const PRESETS = [
+  'ロズウェル事件', 'エリア51', 'バミューダトライアングル',
+  'ツチノコ', 'ネッシー', 'ビッグフット', '青木ヶ原',
+  'ナスカの地上絵', 'チュパカブラ', 'フェルミのパラドックス',
+  'USS Nimitz UAP', 'スラブ神話', '日本の妖怪'
+];
+
+// ── INIT ──────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  loadConfig();
+  renderPresets();
+  if (config.sbUrl && config.sbKey) {
+    try { sbClient = window.supabase.createClient(config.sbUrl, config.sbKey); } catch(e) {}
+  }
+  if (config.siteUrl) document.getElementById('site-link').href = config.siteUrl;
+});
+
+function loadConfig() {
+  try {
+    const saved = localStorage.getItem('enigma_config');
+    if (saved) config = { ...config, ...JSON.parse(saved) };
+  } catch(e) {}
+}
+
+function saveConfig() {
+  config.sbUrl = document.getElementById('cfg-sb-url').value;
+  config.sbKey = document.getElementById('cfg-sb-key').value;
+  config.siteUrl = document.getElementById('cfg-site-url').value;
+  localStorage.setItem('enigma_config', JSON.stringify(config));
+  if (config.sbUrl && config.sbKey) {
+    sbClient = window.supabase.createClient(config.sbUrl, config.sbKey);
+  }
+  if (config.siteUrl) document.getElementById('site-link').href = config.siteUrl;
+  closeConfig();
+  showToast('設定を保存しました', 'success');
+}
+
+function openConfig() {
+  document.getElementById('cfg-sb-url').value = config.sbUrl || '';
+  document.getElementById('cfg-sb-key').value = config.sbKey || '';
+  document.getElementById('cfg-site-url').value = config.siteUrl || '';
+  document.getElementById('config-modal').classList.add('open');
+}
+function closeConfig() { document.getElementById('config-modal').classList.remove('open'); }
+
+function renderPresets() {
+  const container = document.getElementById('preset-chips');
+  container.innerHTML = PRESETS.map(p =>
+    `<span class="chip" onclick="setKeyword('${p}')">${p}</span>`
+  ).join('');
+}
+
+function setKeyword(kw) {
+  document.getElementById('keyword').value = kw;
+  document.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('active', c.textContent === kw);
+  });
+}
+
+// ── STEP 1: 情報収集 ──────────────────────────────────────
+async function fetchSources() {
+  const keyword = document.getElementById('keyword').value.trim();
+  if (!keyword) { showToast('キーワードを入力してください', 'error'); return; }
+
+  setStatus('fetch-status', 'loading', `"${keyword}" を検索中...`);
+  document.getElementById('fetch-btn').disabled = true;
+  document.getElementById('source-panel').style.display = 'none';
+  fetchedSources = [];
+
+  const results = [];
+
+  // ── Wikipedia日本語: Action API (CORS対応) ──
+  try {
+    setStatus('fetch-status', 'loading', 'Wikipedia（日本語）を検索中...');
+    const jaSearchUrl = `https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(keyword)}&srlimit=2&format=json&origin=*`;
+    const jaSearchRes = await fetch(jaSearchUrl);
+    if (jaSearchRes.ok) {
+      const jaSearchData = await jaSearchRes.json();
+      const jaPages = jaSearchData?.query?.search || [];
+      for (const page of jaPages.slice(0, 1)) {
+        const jaExtUrl = `https://ja.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles=${encodeURIComponent(page.title)}&format=json&origin=*`;
+        const jaExtRes = await fetch(jaExtUrl);
+        if (jaExtRes.ok) {
+          const jaExtData = await jaExtRes.json();
+          const pages = jaExtData?.query?.pages || {};
+          const pageObj = Object.values(pages)[0];
+          if (pageObj?.extract && pageObj.extract.length > 80) {
+            results.push({
+              source: 'Wikipedia JP',
+              icon: '📖',
+              title: pageObj.title,
+              excerpt: pageObj.extract.substring(0, 400) + (pageObj.extract.length > 400 ? '...' : ''),
+              fullText: pageObj.extract.substring(0, 2000),
+              url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(pageObj.title)}`,
+              license: 'CC BY-SA',
+              reliability: 'MEDIUM',
+              selected: true
+            });
+          }
+        }
+      }
+    }
+  } catch(e) { console.warn('Wikipedia JP error:', e); }
+
+  // ── Wikipedia英語: Action API (CORS対応) ──
+  try {
+    setStatus('fetch-status', 'loading', 'Wikipedia（English）を検索中...');
+    const enSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(keyword)}&srlimit=2&format=json&origin=*`;
+    const enSearchRes = await fetch(enSearchUrl);
+    if (enSearchRes.ok) {
+      const enSearchData = await enSearchRes.json();
+      const enPages = enSearchData?.query?.search || [];
+      for (const page of enPages.slice(0, 1)) {
+        const enExtUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles=${encodeURIComponent(page.title)}&format=json&origin=*`;
+        const enExtRes = await fetch(enExtUrl);
+        if (enExtRes.ok) {
+          const enExtData = await enExtRes.json();
+          const pages = enExtData?.query?.pages || {};
+          const pageObj = Object.values(pages)[0];
+          if (pageObj?.extract && pageObj.extract.length > 80) {
+            results.push({
+              source: 'Wikipedia EN',
+              icon: '📖',
+              title: pageObj.title,
+              excerpt: pageObj.extract.substring(0, 400) + (pageObj.extract.length > 400 ? '...' : ''),
+              fullText: pageObj.extract.substring(0, 2000),
+              url: `https://en.wikipedia.org/wiki/${encodeURIComponent(pageObj.title)}`,
+              license: 'CC BY-SA',
+              reliability: 'MEDIUM',
+              selected: results.length === 0
+            });
+          }
+        }
+      }
+    }
+  } catch(e) { console.warn('Wikipedia EN error:', e); }
+
+  const category = document.getElementById('category').value;
+  // NASA / Wikimedia Commons から集めたパブリックドメイン画像の候補
+  const imageCandidates = [];
+
+  // ── NASA Image & Video Library（キーワード検索・CORS対応・APIキー不要） ──
+  // ※ APOD はキーワード検索に非対応のため、検索可能な images-api を使用（全画像パブリックドメイン）
+  try {
+    setStatus('fetch-status', 'loading', 'NASA（公式・政府データ）を検索中...');
+    const nasaUrl = `https://images-api.nasa.gov/search?q=${encodeURIComponent(keyword)}&media_type=image`;
+    const nasaRes = await fetch(nasaUrl);
+    if (nasaRes.ok) {
+      const nasaData = await nasaRes.json();
+      const items = nasaData?.collection?.items || [];
+      if (items.length) {
+        const top = items.slice(0, 4);
+        const descText = top.map(it => {
+          const d = it.data?.[0];
+          return d ? `- ${d.title}: ${(d.description || '').substring(0, 300)}` : '';
+        }).filter(Boolean).join('\n');
+        results.push({
+          source: 'NASA',
+          icon: '🚀',
+          title: 'NASA Image & Data Library',
+          excerpt: (top[0]?.data?.[0]?.description || 'NASA公式のパブリックドメイン記録・観測データ').substring(0, 320),
+          fullText: `NASA official public-domain records related to "${keyword}":\n${descText}`,
+          url: 'https://images.nasa.gov/search?q=' + encodeURIComponent(keyword),
+          license: 'Public Domain',
+          reliability: 'HIGH',
+          selected: true
+        });
+        // NASA画像（パブリックドメイン）を画像候補に追加
+        for (const it of top) {
+          const thumb = (it.links || []).find(l => l.render === 'image' || /\.(jpg|jpeg|png)$/i.test(l.href || ''));
+          const d = it.data?.[0];
+          if (thumb?.href) {
+            imageCandidates.push({
+              thumb: thumb.href,
+              full: thumb.href,
+              license: 'Public Domain',
+              source: 'NASA',
+              title: (d?.title || 'NASA image').substring(0, 80)
+            });
+          }
+        }
+      }
+    }
+  } catch(e) { console.warn('NASA error:', e); }
+
+  // ── Internet Archive（キーワード検索・政府/歴史文書） ──
+  try {
+    setStatus('fetch-status', 'loading', 'Internet Archive を検索中...');
+    const iaUrl = `https://archive.org/advancedsearch.php?q=${encodeURIComponent(keyword)}&fl[]=identifier&fl[]=title&fl[]=description&rows=3&page=1&output=json`;
+    const iaRes = await fetch(iaUrl);
+    if (iaRes.ok) {
+      const iaData = await iaRes.json();
+      const docs = iaData?.response?.docs || [];
+      if (docs.length) {
+        const descText = docs.map(d => {
+          const desc = Array.isArray(d.description) ? d.description[0] : d.description;
+          return `- ${d.title}: ${String(desc || '').replace(/<[^>]*>/g, '').substring(0, 250)}`;
+        }).join('\n');
+        results.push({
+          source: 'Internet Archive',
+          icon: '🏛',
+          title: 'Internet Archive アーカイブ文書',
+          excerpt: String(Array.isArray(docs[0].description) ? docs[0].description[0] : docs[0].description || 'アーカイブされた歴史的・政府関連文書').replace(/<[^>]*>/g, '').substring(0, 320),
+          fullText: `Internet Archive documents related to "${keyword}":\n${descText}`,
+          url: 'https://archive.org/search?query=' + encodeURIComponent(keyword),
+          license: 'Public Domain / Archive',
+          reliability: 'MEDIUM',
+          selected: false
+        });
+      }
+    }
+  } catch(e) { console.warn('Internet Archive error:', e); }
+
+  // ── Wikimedia Commons 画像検索（PD / CC BY-SA のみ） ──
+  try {
+    setStatus('fetch-status', 'loading', 'Wikimedia Commons 画像を検索中...');
+    const commonsImgs = await fetchCommonsImages(keyword);
+    imageCandidates.push(...commonsImgs);
+  } catch(e) { console.warn('Commons image error:', e); }
+
+  // ── キーワードだけでもAI生成できるフォールバック ──
+  if (results.length === 0) {
+    setStatus('fetch-status', 'loading', 'ソースが見つからないため、AIの知識ベースで生成します...');
+    results.push({
+      source: 'AI Knowledge Base',
+      icon: '🤖',
+      title: keyword,
+      excerpt: `"${keyword}"に関する公開ソースが見つかりませんでした。ClaudeのトレーニングデータとCC BY-SAライセンスの公開知識をもとに記事を生成します。`,
+      fullText: `Generate an informative article about: "${keyword}". Use your training knowledge about this paranormal/UAP/mythology topic. Focus on well-documented accounts, historical records, and notable investigations.`,
+      url: '',
+      license: 'AI Generated (Original)',
+      reliability: null,
+      selected: true
+    });
+  }
+
+  // ── カテゴリがUAPの場合はNASA・政府文書（信頼度HIGH）を優先表示 ──
+  if (category === 'uap') {
+    const rank = s => (s.reliability === 'HIGH' ? 0 : s.reliability === 'MEDIUM' ? 1 : 2);
+    results.sort((a, b) => rank(a) - rank(b));
+    // UAPでは信頼度HIGHのソースを優先選択
+    results.forEach(s => { s.selected = s.reliability === 'HIGH' || s.source.startsWith('Wikipedia'); });
+  }
+
+  // 画像候補を整理（UAPはNASA優先）して保持
+  if (category === 'uap') {
+    imageCandidates.sort((a, b) => (a.source === 'NASA' ? 0 : 1) - (b.source === 'NASA' ? 0 : 1));
+  }
+  fetchedImages = imageCandidates.slice(0, MAX_IMAGES);
+  selectedImageUrl = null;
+  selectedImageMeta = null;
+
+  fetchedSources = results;
+  document.getElementById('fetch-btn').disabled = false;
+  setStatus('fetch-status', 'ok', `${results.length}件のソース・${fetchedImages.length}枚の画像候補を取得しました`);
+  renderSources(results);
+  renderImagePicker(fetchedImages);
+  document.getElementById('source-panel').style.display = 'block';
+  document.getElementById('source-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── Wikimedia Commons 画像検索（PD / CC BY-SA ライセンスのみ） ──
+async function fetchCommonsImages(keyword) {
+  const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(keyword)}&gsrnamespace=6&gsrlimit=15&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=320&format=json&origin=*`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = await res.json();
+  const pages = data?.query?.pages || {};
+  const imgs = [];
+  for (const p of Object.values(pages)) {
+    const info = p.imageinfo?.[0];
+    if (!info) continue;
+    const meta = info.extmetadata || {};
+    const licenseRaw = (meta.LicenseShortName?.value || '').trim();
+    const lic = licenseRaw.toLowerCase();
+    const isPD = lic.includes('public domain') || lic === 'pd' || lic.includes('pd-');
+    const isCCBYSA = lic.includes('cc by-sa') || lic.includes('cc-by-sa');
+    if (!isPD && !isCCBYSA) continue;
+    // 表示可能なラスター/SVG画像のみ
+    if (!/\.(jpe?g|png|gif|webp|svg)$/i.test(info.url || '')) continue;
+    imgs.push({
+      thumb: info.thumburl || info.url,
+      full: info.url,
+      license: licenseRaw || (isPD ? 'Public Domain' : 'CC BY-SA'),
+      source: 'Wikimedia Commons',
+      title: (p.title || '').replace(/^File:/, '').substring(0, 80)
+    });
+  }
+  return imgs.slice(0, MAX_IMAGES);
+}
+
+// ── 画像ピッカー UI ──
+function renderImagePicker(images) {
+  const container = document.getElementById('image-picker');
+  if (!container) return;
+  if (!images || !images.length) {
+    container.innerHTML = `<div class="divider-line"></div>
+      <p style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-muted);letter-spacing:0.12em">関連画像は見つかりませんでした</p>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="divider-line"></div>
+    <p style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-muted);letter-spacing:0.12em;margin-bottom:0.75rem">関連画像（NASA / Wikimedia Commons — PD・CC BY-SAのみ）｜クリックで1枚選択</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:0.5rem">
+      ${images.map((img, i) => `
+        <div id="img-${i}" onclick="selectImage(${i})" title="${escHtml(img.title)} — ${escHtml(img.license)}"
+          style="border:1px solid ${selectedImageUrl === img.full ? 'var(--gold)' : 'var(--border)'};cursor:pointer;position:relative;aspect-ratio:1;overflow:hidden;background:var(--panel)">
+          <img src="${escHtml(img.thumb)}" alt="${escHtml(img.title)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">
+          ${selectedImageUrl === img.full ? `<span style="position:absolute;top:2px;right:4px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--gold);background:rgba(5,5,8,0.8);padding:0 4px">✓</span>` : ''}
+        </div>
+      `).join('')}
+    </div>
+    <p id="img-credit-note" style="font-family:'Share Tech Mono',monospace;font-size:0.55rem;color:var(--text-muted);letter-spacing:0.08em;margin-top:0.6rem;line-height:1.6">
+      ${selectedImageMeta
+        ? `✓ 選択中: ${escHtml(selectedImageMeta.source)} / ${escHtml(selectedImageMeta.license)}`
+        : '画像を選択すると記事に添付され、image_url として保存されます（任意）'}
+    </p>`;
+}
+
+function selectImage(i) {
+  const img = fetchedImages[i];
+  if (!img) return;
+  if (selectedImageUrl === img.full) {
+    // 再クリックで選択解除
+    selectedImageUrl = null;
+    selectedImageMeta = null;
+  } else {
+    selectedImageUrl = img.full;
+    selectedImageMeta = img;
+  }
+  renderImagePicker(fetchedImages);
+  // プレビュー表示中なら画像も即時反映
+  if (generatedArticle) renderPreview(generatedArticle);
+}
+
+function renderSources(sources) {
+  const container = document.getElementById('source-results');
+  container.innerHTML = `
+    <p style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-muted);letter-spacing:0.12em;margin-bottom:1rem">取得したソース（使用するものを選択）</p>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1rem">
+      ${sources.map((s, i) => `
+        <div style="border:0.5px solid ${s.selected ? 'var(--gold-dim)' : 'var(--border)'};background:var(--panel);padding:1rem;cursor:pointer;transition:all 0.2s" onclick="toggleSource(${i})" id="src-${i}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;gap:0.5rem">
+            <span style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:${s.selected ? 'var(--gold)' : 'var(--text-dim)'};letter-spacing:0.12em">${s.icon} ${s.source} — ${escHtml(s.title)}</span>
+            <span style="display:flex;gap:6px;flex-shrink:0;align-items:center">
+              ${relBadge(s.reliability)}
+              <span style="font-family:'Share Tech Mono',monospace;font-size:0.55rem;padding:2px 8px;border:0.5px solid var(--border);color:var(--green)">${s.license}</span>
+            </span>
+          </div>
+          <p style="font-size:0.78rem;color:var(--text-muted);line-height:1.7">${escHtml(s.excerpt)}</p>
+          <div id="src-check-${i}" style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:${s.selected ? 'var(--gold)' : 'var(--text-muted)'};margin-top:0.5rem">${s.selected ? '✓ 使用する' : '○ 使用しない'}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function toggleSource(i) {
+  fetchedSources[i].selected = !fetchedSources[i].selected;
+  const card = document.getElementById(`src-${i}`);
+  const check = document.getElementById(`src-check-${i}`);
+  const s = fetchedSources[i];
+  card.style.borderColor = s.selected ? 'var(--gold-dim)' : 'var(--border)';
+  check.style.color = s.selected ? 'var(--gold)' : 'var(--text-muted)';
+  check.textContent = s.selected ? '✓ 使用する' : '○ 使用しない';
+}
+
+// ── STEP 2: AI記事生成 ────────────────────────────────────
+async function generateArticle() {
+  const selected = fetchedSources.filter(s => s.selected);
+  if (!selected.length) { showToast('ソースを1つ以上選択してください', 'error'); return; }
+
+  const keyword = document.getElementById('keyword').value.trim();
+  const category = document.getElementById('category').value;
+  const tone = document.getElementById('tone').value;
+  const length = document.getElementById('length').value;
+
+  const toneMap = {
+    investigative: '調査報告書スタイル（客観的・詳細・信頼性重視）',
+    mysterious: 'ミステリアスで引き込む文体（読者の興味を引く）',
+    academic: '学術的スタイル（考察・分析重視）',
+    narrative: '物語形式（読みやすく没入感がある）'
+  };
+  const lengthMap = {
+    short: '300〜500文字', medium: '600〜900文字', long: '1000〜1500文字'
+  };
+
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('steps-panel').style.display = 'block';
+
+  const steps = [
+    { id: 's1', text: 'ソースデータを解析中' },
+    { id: 's2', text: 'Claude AIに記事生成を依頼中' },
+    { id: 's3', text: '日本語に最適化中' },
+    { id: 's4', text: 'タイトルとメタデータを生成中' },
+    { id: 's5', text: 'プレビューを構築中' },
+  ];
+
+  renderSteps(steps);
+  setStepActive('s1');
+
+  const sourceContext = selected.map(s => `
+【ソース: ${s.source} — ${s.title}】（ライセンス: ${s.license}）
+${s.fullText}
+  `).join('\n\n');
+
+  await sleep(400);
+  setStepDone('s1');
+  setStepActive('s2');
+
+  const prompt = `あなたはENIGMA ARCHIVEという世界の怪奇現象・UAP・神話伝承を扱うキュレーションサイトの編集者です。
+
+以下のWikipedia・公的ソースの情報をもとに、サイト掲載用の日本語記事を生成してください。
+
+【キーワード】${keyword}
+【カテゴリ】${category}
+【文体】${toneMap[tone]}
+【文字数】${lengthMap[length]}
+
+【参照ソース】
+${sourceContext}
+
+以下のJSON形式で必ず返してください（マークダウンのコードブロックなし）：
+{
+  "title": "記事タイトル（20〜40文字）",
+  "subtitle": "サブタイトル（30〜60文字、謎めいた一文）",
+  "location_country": "関連する国名（日本語）",
+  "location_country_en": "Country name in English",
+  "location_region": "地域・場所名（日本語）",
+  "location_region_en": "Region name in English",
+  "incident_date": "発生時期・年代（日本語。例: 1947年、古代〜現代）",
+  "incident_date_en": "Date/period in English (e.g. 1947, Ancient-Present)",
+  "description": "記事本文（指定の文字数・文体で）",
+  "summary": "100文字以内の要約"
+}
+
+重要:
+- ソースの情報を元に独自の文章を書く（直接コピーしない）
+- 日本語読者に向けた自然な文章
+- 客観性を保ちつつ、謎や神秘を感じさせる表現を使う
+- 必ずJSON形式のみで返す`;
+
+  try {
+    const response = await fetch(CLAUDE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    setStepDone('s2');
+    setStepActive('s3');
+
+    if (!response.ok) {
+      let msg = 'API Error (' + response.status + ')';
+      try { const err = await response.json(); msg = err.error?.message || err.error || msg; } catch(_) {}
+      throw new Error(msg);
+    }
+
+    const data = await response.json();
+    const rawText = (data.content || []).map(c => c.text || '').join('');
+
+    await sleep(300);
+    setStepDone('s3');
+    setStepActive('s4');
+
+    let article;
+    try {
+      const cleaned = rawText.replace(/```json|```/g, '').trim();
+      article = JSON.parse(cleaned);
+    } catch(e) {
+      throw new Error('JSON解析エラー: ' + rawText.substring(0, 100));
+    }
+
+    article.category = category;
+    article.sources = selected.map(s => s.source).join(', ');
+    article.source_urls = selected.map(s => s.url).filter(Boolean);
+
+    await sleep(300);
+    setStepDone('s4');
+    setStepActive('s5');
+
+    generatedArticle = article;
+    await sleep(300);
+    setStepDone('s5');
+
+    renderPreview(article);
+    document.getElementById('preview-dot').style.background = 'var(--green)';
+
+  } catch(e) {
+    setStepError('s2');
+    showToast('生成エラー: ' + e.message, 'error');
+    console.error(e);
+  }
+
+  document.getElementById('gen-btn').disabled = false;
+}
+
+function renderPreview(article) {
+  const cat = CAT_CONFIG[article.category] || { label: article.category, cls: 'label-uap' };
+  const preview = document.getElementById('preview-area');
+  preview.innerHTML = `
+    <div class="article-preview">
+      ${selectedImageUrl ? `
+      <div style="position:relative;border-bottom:0.5px solid var(--border);background:var(--black)">
+        <img src="${escHtml(selectedImageUrl)}" alt="" style="width:100%;max-height:320px;object-fit:cover;display:block">
+        <span style="position:absolute;bottom:6px;right:8px;font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:var(--text-dim);background:rgba(5,5,8,0.85);padding:2px 8px;letter-spacing:0.08em">
+          ${escHtml(selectedImageMeta?.source || 'Wikimedia Commons')} · ${escHtml(selectedImageMeta?.license || '')}
+        </span>
+      </div>` : ''}
+      <div class="preview-meta">
+        <span class="preview-label ${cat.cls}">◈ ${cat.label}</span>
+        <h2 class="preview-title" id="edit-title" contenteditable="true" title="クリックして編集">${escHtml(article.title)}</h2>
+        <p class="preview-subtitle" id="edit-subtitle" contenteditable="true">${escHtml(article.subtitle || '')}</p>
+        <div class="preview-meta-row">
+          ${article.incident_date ? `<span class="preview-meta-item">📅 ${escHtml(article.incident_date)}</span>` : ''}
+          ${article.location_country ? `<span class="preview-meta-item">📍 ${escHtml(article.location_country)}${article.location_region ? ' / ' + escHtml(article.location_region) : ''}</span>` : ''}
+        </div>
+      </div>
+      <div class="preview-body">
+        <div id="edit-body" contenteditable="true" style="outline:none;border:0.5px dashed transparent;transition:border-color 0.2s;padding:4px" onfocus="this.style.borderColor='var(--border)'" onblur="this.style.borderColor='transparent'">
+          ${article.description.split('\n').filter(p => p.trim()).map(p => `<p>${escHtml(p)}</p>`).join('')}
+        </div>
+      </div>
+      <div class="preview-source">
+        <span>情報源:</span>
+        ${(article.sources || '').split(', ').map(s => `<span class="source-badge">${escHtml(s)}</span>`).join('')}
+        <span style="margin-left:auto;color:rgba(46,204,113,0.7)">CC BY-SA / Public Domain</span>
+      </div>
+      <div class="preview-actions">
+        <button class="btn btn-gold" onclick="regenerate()">↺ 再生成</button>
+        <button class="btn btn-green" onclick="postToSite()" id="post-btn">
+          ✦ サイトに投稿（審査待ちで追加）
+        </button>
+        <button class="btn btn-red" onclick="discardArticle()">✕ 破棄</button>
+      </div>
+      <div style="padding:0.75rem 1.5rem;border-top:0.5px solid var(--border)">
+        <p style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--text-muted);letter-spacing:0.1em">💡 タイトル・本文はクリックして直接編集できます</p>
+      </div>
+    </div>
+  `;
+}
+
+async function postToSite() {
+  if (!sbClient) {
+    showToast('⚙ Supabaseの設定が必要です', 'error');
+    openConfig();
+    return;
+  }
+
+  const titleEl = document.getElementById('edit-title');
+  const bodyEl = document.getElementById('edit-body');
+  if (!titleEl || !bodyEl) return;
+
+  const title = titleEl.innerText.trim();
+  const description = bodyEl.innerText.trim();
+
+  if (!title || !description) { showToast('タイトルと本文が必要です', 'error'); return; }
+
+  const btn = document.getElementById('post-btn');
+  btn.disabled = true;
+  btn.textContent = '投稿中...';
+
+  const payload = {
+    title,
+    description,
+    category: generatedArticle.category,
+    location_country: generatedArticle.location_country || null,
+    location_country_en: generatedArticle.location_country_en || null,
+    location_region: generatedArticle.location_region || null,
+    location_region_en: generatedArticle.location_region_en || null,
+    incident_date: generatedArticle.incident_date || null,
+    incident_date_en: generatedArticle.incident_date_en || null,
+    image_url: selectedImageUrl || null,
+    image_credit: selectedImageMeta ? `${selectedImageMeta.source} / ${selectedImageMeta.license}` : null,
+    submitter_name: 'ENIGMA ARCHIVE 編集部',
+    status: 'pending',
+    view_count: 0
+  };
+
+  const { error } = await sbClient.from('cases').insert(payload);
+
+  if (error) {
+    showToast('投稿失敗: ' + error.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '✦ サイトに投稿（審査待ちで追加）';
+    return;
+  }
+
+  showToast('✓ 投稿しました！管理画面から承認してください。', 'success');
+  btn.textContent = '✓ 投稿完了';
+
+  history.unshift({ title, category: generatedArticle.category, status: 'posted' });
+  renderHistory();
+}
+
+function discardArticle() {
+  generatedArticle = null;
+  selectedImageUrl = null;
+  selectedImageMeta = null;
+  if (fetchedImages.length) renderImagePicker(fetchedImages);
+  document.getElementById('preview-area').innerHTML = `
+    <div class="preview-empty">
+      <span class="preview-empty-icon">📄</span>
+      <span class="preview-empty-text">キーワードを入力して記事を生成してください</span>
+    </div>`;
+  document.getElementById('preview-dot').style.background = 'var(--text-muted)';
+}
+
+function regenerate() {
+  document.getElementById('source-panel').scrollIntoView({ behavior: 'smooth' });
+  generateArticle();
+}
+
+function renderHistory() {
+  const body = document.getElementById('history-body');
+  if (!history.length) { body.innerHTML = '<p style="font-family:\'Share Tech Mono\',monospace;font-size:0.62rem;color:var(--text-muted);letter-spacing:0.15em">まだ投稿はありません</p>'; return; }
+  body.innerHTML = `<div class="history-list">${history.slice(0,5).map(h => `
+    <div class="history-item">
+      <span class="history-title">${escHtml(h.title)}</span>
+      <span class="history-status history-posted">投稿済み</span>
+    </div>`).join('')}</div>`;
+}
+
+// ── STEPS UI ──────────────────────────────────────────────
+function renderSteps(steps) {
+  document.getElementById('step-list').innerHTML = steps.map(s =>
+    `<div class="step-item" id="${s.id}"><span class="step-num">○</span>${s.text}</div>`
+  ).join('');
+}
+function setStepActive(id) {
+  const el = document.getElementById(id);
+  if (el) { el.className = 'step-item active'; el.querySelector('.step-num').textContent = '▶'; }
+  document.getElementById('steps-dot').style.background = 'var(--amber)';
+}
+function setStepDone(id) {
+  const el = document.getElementById(id);
+  if (el) { el.className = 'step-item done'; el.querySelector('.step-num').textContent = '✓'; }
+}
+function setStepError(id) {
+  const el = document.getElementById(id);
+  if (el) { el.className = 'step-item error'; el.querySelector('.step-num').textContent = '✕'; }
+  document.getElementById('steps-dot').style.background = 'var(--red-bright)';
+}
+
+// ── STATUS ────────────────────────────────────────────────
+function setStatus(id, type, msg) {
+  const bar = document.getElementById(id);
+  if (!bar) return;
+  const dotClass = { loading: 'status-loading', ok: 'status-ok', error: 'status-error', idle: 'status-idle' }[type] || 'status-idle';
+  bar.innerHTML = `<span class="status-dot ${dotClass}"></span><span style="color:${type==='error'?'var(--red-bright)':type==='ok'?'var(--green)':'var(--text-dim)'}">${msg}</span>`;
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// 信頼度バッジ（HIGH=緑 / MEDIUM=琥珀）
+function relBadge(r) {
+  if (!r) return '';
+  const high = r === 'HIGH';
+  const color = high ? 'var(--green)' : 'var(--amber)';
+  const bg = high ? 'rgba(46,204,113,0.1)' : 'rgba(251,191,36,0.1)';
+  return `<span style="font-family:'Share Tech Mono',monospace;font-size:0.52rem;padding:2px 7px;border:0.5px solid ${color};color:${color};background:${bg};letter-spacing:0.08em;white-space:nowrap">信頼度 ${r}</span>`;
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function showToast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+</script>
+</body>
+</html>

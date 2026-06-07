@@ -1,87 +1,91 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>エニグマ・アーカイブ</title>
-  <meta name="description" content="UFO、UMA、幽霊、都市伝説、未解明現象を集めたアーカイブ。">
-  <style>
-    body {
-      background: #070b12;
-      color: #f2f2f2;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      padding: 70px 20px;
-      text-align: center;
-      background: linear-gradient(135deg, #111827, #1f2937);
-    }
-    h1 {
-      font-size: 42px;
-      margin-bottom: 10px;
-    }
-    .subtitle {
-      color: #b8c0cc;
-    }
-    main {
-      max-width: 1000px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-    .article-card {
-      background: #111827;
-      border: 1px solid #263244;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-    .article-card h2 {
-      margin-top: 0;
-    }
-    .article-card a {
-      color: #7dd3fc;
-      text-decoration: none;
-    }
-    .category {
-      color: #a78bfa;
-      font-weight: bold;
-      font-size: 14px;
-    }
-    footer {
-      text-align: center;
-      padding: 30px;
-      color: #777;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エニグマ・アーカイブ</title>
+
+<style>
+body{
+  background:#070b12;
+  color:#f2f2f2;
+  font-family:Arial,sans-serif;
+  margin:0;
+}
+
+header{
+  padding:70px 20px;
+  text-align:center;
+  background:linear-gradient(135deg,#111827,#1f2937);
+}
+
+h1{
+  font-size:48px;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:40px 20px;
+}
+
+.card{
+  display:block;
+  background:#0f172a;
+  border:1px solid #1e293b;
+  border-radius:14px;
+  padding:25px;
+  margin-bottom:20px;
+  text-decoration:none;
+  color:white;
+}
+
+.card:hover{
+  border-color:#38bdf8;
+}
+
+.category{
+  color:#c084fc;
+  margin-bottom:10px;
+}
+
+footer{
+  text-align:center;
+  padding:40px;
+  color:#999;
+}
+</style>
 </head>
+
 <body>
 
 <header>
-  <h1>エニグマ・アーカイブ</h1>
-  <p class="subtitle">UFO、UMA、幽霊、都市伝説、未解明現象</p>
+<h1>エニグマ・アーカイブ</h1>
+<p>UFO、UMA、幽霊、都市伝説、未解明現象</p>
 </header>
 
-<main>
-  <h2>最新記事</h2>
+<div class="container">
+<h2>最新記事</h2>
 
+
+    <a href="/articles/undefined-undefined.html" class="card">
+      <div class="category">undefined</div>
+      <h2>undefined</h2>
+      <p>undefined</p>
+    </a>
   
-    <div class="article-card">
-      <p class="category">Mystery</p>
-      <h2>
-        <a href="/articles/undefined.html">
-          undefined
-        </a>
-      </h2>
-      <p></p>
-    </div>
+    <a href="/articles/undefined-undefined.html" class="card">
+      <div class="category">undefined</div>
+      <h2>undefined</h2>
+      <p>undefined</p>
+    </a>
   
 
-</main>
+</div>
 
 <footer>
-  <p>© 2026 エニグマ・アーカイブ</p>
+© 2026 エニグマ・アーカイブ
 </footer>
 
 </body>

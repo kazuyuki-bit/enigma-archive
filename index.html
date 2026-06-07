@@ -3,33 +3,26 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>エニグマ・アーカイブ</title>
-
 <style>
 body{
+  margin:0;
   background:#070b12;
   color:#f2f2f2;
   font-family:Arial,sans-serif;
-  margin:0;
 }
-
 header{
-  padding:70px 20px;
   text-align:center;
+  padding:70px 20px;
   background:linear-gradient(135deg,#111827,#1f2937);
 }
-
-h1{
-  font-size:48px;
-}
-
-.container{
+h1{font-size:48px;}
+.subtitle{color:#cbd5e1;}
+main{
   max-width:900px;
-  margin:auto;
-  padding:40px 20px;
+  margin:40px auto;
+  padding:0 20px;
 }
-
 .card{
   display:block;
   background:#0f172a;
@@ -42,55 +35,49 @@ h1{
   transition:0.25s ease;
   box-shadow:0 10px 25px rgba(0,0,0,0.25);
 }
-
 .card:hover{
   border-color:#38bdf8;
   transform:translateY(-4px);
   box-shadow:0 18px 35px rgba(56,189,248,0.15);
 }
-
-.category{
-  color:#c084fc;
-  margin-bottom:10px;
-}
-
-footer{
-  text-align:center;
-  padding:40px;
-  color:#999;
-}
+.category{color:#a78bfa;font-weight:bold;}
+footer{text-align:center;color:#94a3b8;padding:40px;}
 </style>
 </head>
-
 <body>
-
 <header>
 <h1>エニグマ・アーカイブ</h1>
-<p>UFO、UMA、幽霊、都市伝説、未解明現象</p>
+<div class="subtitle">UFO、UMA、幽霊、都市伝説、未解明現象</div>
 </header>
 
-<div class="container">
+<main>
 <h2>最新記事</h2>
 
+<a class="card" href="/articles/.html">
+  <div class="category">Mystery</div>
+  <h2>Untitled</h2>
+  <p></p>
+</a>
 
-    <a href="/articles/enigmatic-puzzle-unidentified-flying-objects-facts-speculations-2.html" class="card">
-      <div class="category">UFO</div>
-      <h2>The Enigmatic Puzzle of Unidentified Flying Objects: Facts and Speculations</h2>
-      <p>This article explores various reports and investigations surrounding Unidentified Flying Objects (UFOs). It reviews eyewitness accounts, available evidence, and official statements, emphasizing that many phenomena remain unexplained and cautioning against accepting all claims as definitive fact.</p>
-    </a>
-  
-    <a href="/articles/mysterious-lights-pacific-northwest-ufo-sightings-3.html" class="card">
-      <div class="category">UFO</div>
-      <h2>Mysterious Lights Sighted Over Pacific Northwest Spark UFO Speculations</h2>
-      <p>Several witnesses reported seeing unexplained lights hovering over the Pacific Northwest, stirring discussions about possible UFO activity. The origin and nature of these lights remain uncertain as investigations continue.</p>
-    </a>
-  
+<a class="card" href="/articles/.html">
+  <div class="category">Mystery</div>
+  <h2>Untitled</h2>
+  <p></p>
+</a>
 
-</div>
+<a class="card" href="/articles/.html">
+  <div class="category">Mystery</div>
+  <h2>Untitled</h2>
+  <p></p>
+</a>
 
-<footer>
-© 2026 エニグマ・アーカイブ
-</footer>
+<a class="card" href="/articles/.html">
+  <div class="category">Mystery</div>
+  <h2>Untitled</h2>
+  <p></p>
+</a>
+</main>
 
+<footer>© 2026 エニグマ・アーカイブ</footer>
 </body>
 </html>

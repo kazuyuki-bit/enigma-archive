@@ -3,78 +3,264 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>エニグマ・アーカイブ</title>
+<title>ENIGMA ARCHIVE</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+*{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:Arial, sans-serif;
-  background:#050912;
-  color:#f5f5f5;
+  font-family: Georgia, "Times New Roman", "Noto Serif JP", serif;
+  background:
+    radial-gradient(circle at top, rgba(92,32,20,.35), transparent 35%),
+    linear-gradient(180deg,#070707,#03050a 45%,#080914);
+  color:#d9c58a;
 }
-header{
-  background:linear-gradient(180deg,#172235,#0a0f1c);
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,.025),
+    rgba(255,255,255,.025) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  opacity:.25;
+}
+
+nav{
+  height:58px;
+  border-bottom:1px solid rgba(201,162,74,.25);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 28px;
+  background:rgba(0,0,0,.65);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+.logo{
+  letter-spacing:6px;
+  font-size:15px;
+  color:#c9a24a;
+}
+
+.nav-links{
+  font-size:12px;
+  letter-spacing:2px;
+  color:#8f7b4c;
+}
+
+.hero{
+  min-height:520px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
   padding:80px 20px;
+}
+
+.badge{
+  display:inline-block;
+  border:1px solid #8f2f22;
+  color:#c74a36;
+  padding:8px 24px;
+  font-size:11px;
+  letter-spacing:5px;
+  transform:rotate(-1deg);
+  margin-bottom:45px;
+}
+
+h1{
+  font-size:82px;
+  line-height:.9;
+  letter-spacing:12px;
+  margin:0;
+  color:#c9a24a;
+  text-shadow:0 0 35px rgba(201,162,74,.22);
+}
+
+.subtitle{
+  margin-top:30px;
+  color:#8f7b4c;
+  letter-spacing:5px;
+  font-size:13px;
+}
+
+.description{
+  margin-top:38px;
+  color:#9b927c;
+  font-size:14px;
+  line-height:2;
+}
+
+.actions{
+  margin-top:35px;
+}
+
+.btn{
+  display:inline-block;
+  border:1px solid #c9a24a;
+  color:#c9a24a;
+  padding:12px 35px;
+  margin:8px;
+  text-decoration:none;
+  font-size:13px;
+  letter-spacing:2px;
+}
+
+.btn.red{
+  border-color:#8f2f22;
+  color:#d65343;
+}
+
+.stats{
+  border-top:1px solid rgba(201,162,74,.18);
+  border-bottom:1px solid rgba(201,162,74,.18);
+  background:linear-gradient(90deg,#10111d,#181526,#10111d);
+  display:flex;
+  justify-content:center;
+  gap:80px;
+  padding:30px 20px;
+}
+
+.stat strong{
+  display:block;
+  font-size:32px;
+  color:#c9a24a;
   text-align:center;
 }
-h1{
-  font-size:48px;
-  letter-spacing:4px;
+
+.stat span{
+  font-size:11px;
+  color:#777;
+  letter-spacing:2px;
 }
-.subtitle{
-  color:#c7d2fe;
-}
+
 main{
-  max-width:900px;
-  margin:50px auto;
-  padding:0 20px;
+  max-width:1050px;
+  margin:70px auto;
+  padding:0 22px;
 }
-.card{
+
+.section-title{
+  font-size:18px;
+  letter-spacing:5px;
+  color:#c9a24a;
+  border-left:3px solid #8f2f22;
+  padding-left:14px;
+  margin-bottom:28px;
+}
+
+.case-card{
   display:block;
-  background:#10182a;
-  border:1px solid #24324f;
-  border-radius:14px;
-  padding:26px;
-  margin-bottom:20px;
-  color:white;
+  background:rgba(12,12,18,.82);
+  border:1px solid rgba(201,162,74,.22);
+  padding:28px;
+  margin-bottom:22px;
+  color:#d8d0b8;
   text-decoration:none;
-  transition:0.2s;
+  position:relative;
+  overflow:hidden;
 }
-.card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 0 20px rgba(120,100,255,0.35);
+
+.case-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent,rgba(201,162,74,.08),transparent);
+  transform:translateX(-120%);
+  transition:.45s;
 }
-.category{
-  color:#a78bfa;
-  font-weight:bold;
-  margin-bottom:14px;
+
+.case-card:hover::after{
+  transform:translateX(120%);
 }
+
+.case-meta{
+  color:#b24335;
+  font-size:11px;
+  letter-spacing:3px;
+  margin-bottom:16px;
+}
+
+.case-card h2{
+  color:#e0c36a;
+  font-size:25px;
+  margin:0 0 15px;
+}
+
+.case-card p{
+  color:#aaa18d;
+  line-height:1.8;
+}
+
+.read-more{
+  display:inline-block;
+  margin-top:10px;
+  color:#c9a24a;
+  font-size:12px;
+  letter-spacing:2px;
+}
+
 footer{
   text-align:center;
-  padding:40px;
-  color:#888;
+  padding:60px 20px;
+  color:#665b40;
+  border-top:1px solid rgba(201,162,74,.15);
 }
 </style>
 </head>
+
 <body>
 
-<header>
-  <h1>エニグマ・アーカイブ</h1>
-  <div class="subtitle">UFO、UMA、幽霊、都市伝説、未解明現象</div>
-</header>
+<nav>
+  <div class="logo">ENIGMA ARCHIVE</div>
+  <div class="nav-links">HOME　CASE FILES　UAP　UMA　UNKNOWN</div>
+</nav>
 
-<main>
-  <h2>最新記事</h2>
+<section class="hero">
+  <div>
+    <div class="badge">◆ CLASSIFIED ARCHIVE — CASE FILES ◆</div>
+    <h1>ENIGMA<br>ARCHIVE</h1>
+    <div class="subtitle">世界怪奇現象 ・ UAP ・ 神話伝承 記録庫</div>
+    <div class="description">
+      人類が記録してきた説明のつかない現象。<br>
+      あなたの体験が、次の謎の鍵かもしれない。
+    </div>
+    <div class="actions">
+      <a class="btn" href="#cases">記録を閲覧する</a>
+      <a class="btn red" href="#cases">体験談を投稿</a>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stat"><strong>1</strong><span>記録済み事例</span></div>
+  <div class="stat"><strong>0</strong><span>投稿映像</span></div>
+  <div class="stat"><strong>92</strong><span>対象国・地域</span></div>
+  <div class="stat"><strong>0</strong><span>審査待ち</span></div>
+</section>
+
+<main id="cases">
+  <div class="section-title">LATEST CASE FILES</div>
   
-  <a class="card" href="/articles/enigmatic-puzzle-unidentified-flying-objects-facts-speculations.html">
-    <div class="category">UFO</div>
-    <h2>The Enigmatic Puzzle of Unidentified Flying Objects: Facts and Speculations</h2>
-    <p>This article explores various reports and investigations surrounding Unidentified Flying Objects (UFOs). It reviews eyewitness accounts, available evidence, and official statements, emphasizing that many phenomena remain unexplained and cautioning against accepting all claims as definitive fact.</p>
+  <a class="case-card" href="/articles/mysterious-lights-pacific-northwest-ufo-sightings.html">
+    <div class="case-meta">◆ CLASSIFIED ARCHIVE ◆ UFO</div>
+    <h2>Mysterious Lights Sighted Over Pacific Northwest Spark UFO Speculations</h2>
+    <p>Several witnesses reported seeing unexplained lights hovering over the Pacific Northwest, stirring discussions about possible UFO activity. The origin and nature of these lights remain uncertain as investigations continue.</p>
+    <span class="read-more">READ CASE FILE →</span>
   </a>
 </main>
 
 <footer>
-  © 2026 エニグマ・アーカイブ
+  © 2026 ENIGMA ARCHIVE — CLASSIFIED CASE FILES
 </footer>
 
 </body>

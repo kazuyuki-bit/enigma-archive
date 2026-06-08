@@ -77,6 +77,30 @@ nav{
   margin-bottom:45px;
 }
 
+.eye-symbol{
+  font-size:38px;
+  color:#5f4a25;
+  margin-bottom:22px;
+  opacity:.8;
+}
+
+.hero-logo{
+  font-size:110px;
+  line-height:.88;
+  letter-spacing:10px;
+  margin:0;
+  color:#d1ab52;
+  text-shadow:
+    0 0 20px rgba(209,171,82,.15),
+    0 0 45px rgba(209,171,82,.12);
+}
+
+@media(max-width:768px){
+  .hero-logo{
+    font-size:62px;
+  }
+}
+
 h1{
   font-size:82px;
   line-height:.9;
@@ -168,6 +192,33 @@ main{
   text-decoration:none;
   position:relative;
   overflow:hidden;
+  transition:
+  transform .25s ease,
+  border-color .25s ease,
+  box-shadow .25s ease;
+}
+
+.case-number{
+  color:#6f5d34;
+  font-size:11px;
+  letter-spacing:3px;
+  margin-bottom:8px;
+}
+
+.case-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  width:3px;
+  height:100%;
+  background:linear-gradient(
+    180deg,
+    #8f2f22,
+    #d15b4a,
+    transparent
+  );
+  opacity:.7;
 }
 
 .case-card::after{
@@ -181,6 +232,14 @@ main{
 
 .case-card:hover::after{
   transform:translateX(120%);
+}
+
+.case-card:hover{
+  transform:translateY(-6px);
+  border-color:#d1ab52;
+  box-shadow:
+    0 0 25px rgba(209,171,82,.12),
+    0 0 50px rgba(143,47,34,.08);
 }
 
 .case-meta{
@@ -228,6 +287,12 @@ footer{
 <section class="hero">
   <div>
     <div class="badge">◆ CLASSIFIED ARCHIVE — CASE FILES ◆</div>
+    <div class="eye-symbol">◉</div>
+
+<h1 class="hero-logo">
+  ENIGMA<br>
+  ARCHIVE
+</h1>
     <h1>ENIGMA<br>ARCHIVE</h1>
     <div class="subtitle">世界怪奇現象 ・ UAP ・ 神話伝承 記録庫</div>
     <div class="description">
@@ -251,10 +316,12 @@ footer{
 <main id="cases">
   <div class="section-title">LATEST CASE FILES</div>
   
-  <a class="case-card" href="/articles/mysterious-lights-pacific-northwest-ufo-sightings.html">
-    <div class="case-meta">◆ CLASSIFIED ARCHIVE ◆ UFO</div>
-    <h2>Mysterious Lights Sighted Over Pacific Northwest Spark UFO Speculations</h2>
-    <p>Several witnesses reported seeing unexplained lights hovering over the Pacific Northwest, stirring discussions about possible UFO activity. The origin and nature of these lights remain uncertain as investigations continue.</p>
+  <a class="case-card" href="/articles/paranormal-activity-historic-estate.html">
+      <div class="case-number">CASE #0001</div>
+    <div class="case-number">CASE #0001</div>
+<div class="case-meta">◆ CLASSIFIED ARCHIVE ◆ Ghost</div>
+    <h2>Paranormal Activity Reported at Historic Estate</h2>
+    <p>Multiple witnesses have reported unusual phenomena at an old estate, including unexplained sounds and sightings, although no scientific confirmation exists.</p>
     <span class="read-more">READ CASE FILE →</span>
   </a>
 </main>
